@@ -35,29 +35,13 @@ closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeButton.Font = Enum.Font.SourceSansBold
 closeButton.BorderSizePixel = 0
 
-local mainFrame = Instance.new("ScrollingFrame", header)
-mainFrame.Size = UDim2.new(0, 200, 0, 300)
-mainFrame.Position = UDim2.new(0, 10, 0, 30)
-mainFrame.BackgroundTransparency = 0.2
-mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-mainFrame.Active = true
-mainFrame.ScrollBarThickness = 6
-
-local UIListLayout = Instance.new("UIListLayout", mainFrame)
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Padding = UDim.new(0, 5)
-
-UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    mainFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
-end)
-
 local function createBillboard(npc, isFriendly)
     if npc:FindFirstChild("BillboardGui") then return end
 
     local gui = Instance.new("BillboardGui")
     gui.Name = "BillboardGui"
     gui.Adornee = npc:FindFirstChild("Head")
-    gui.Size = UDim2.new(0, 200, 0, 140) -- 调整大小以显示威胁度
+    gui.Size = UDim2.new(0, 200, 0, 140)
     gui.StudsOffset = Vector3.new(0, 3, 0)
     gui.AlwaysOnTop = true
     gui.Parent = npc
@@ -68,7 +52,7 @@ local function createBillboard(npc, isFriendly)
         { name = "rangeLabel", color = Color3.fromRGB(255, 255, 0), posY = 0.4 },
         { name = "damageLabel", color = Color3.fromRGB(255, 165, 0), posY = 0.6 },
         { name = "walkSpeedLabel", color = Color3.fromRGB(0, 255, 255), posY = 0.8 },
-        { name = "threatLevelLabel", color = Color3.fromRGB(255, 0, 0), posY = 1.0 } -- 新增威胁度标签
+        { name = "threatLevelLabel", color = Color3.fromRGB(255, 0, 0), posY = 1.0 }
     }
 
     for _, labelData in ipairs(labels) do
@@ -107,13 +91,11 @@ local function createBillboard(npc, isFriendly)
             local walkSpeed = math.floor(humanoid.WalkSpeed)
             walkSpeedLabel.Text = "WalkSpeed: " .. walkSpeed
 
-            -- 定义属性权重
             local healthWeight = 0.3
             local rangeWeight = 0.2
             local damageWeight = 0.3
             local walkSpeedWeight = 0.2
 
-            -- 计算威胁度
             local threatLevel = (health * healthWeight) + 
                                 (range and range * rangeWeight or 0) + 
                                 (damage and damage * damageWeight or 0) + 
