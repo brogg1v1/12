@@ -84,3 +84,49 @@ local function createBillboard(npc, isFriendly)
         end
     end)
 end
+
+-- 创建顶部总威胁值显示 UI
+local totalThreatLabel = Instance.new("TextLabel", ScreenGui)
+totalThreatLabel.Size = UDim2.new(0.3, 0, 0, 30)
+totalThreatLabel.Position = UDim2.new(0.35, 0, 0, 0) -- 居中顶部
+totalThreatLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+totalThreatLabel.BackgroundTransparency = 0.4
+totalThreatLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+totalThreatLabel.Font = Enum.Font.SourceSansBold
+totalThreatLabel.TextSize = 20
+totalThreatLabel.Text = "Total Threat: 0"
+totalThreatLabel.TextScaled = true
+totalThreatLabel.ZIndex = 20
+
+-- 实时计算整场敌人威胁值总和（乘以0.7）
+task.spawn(function()
+    while true do
+        local totalThreat = 0
+
+        for _, npc in ipairs(EnemyFolder:GetChildren()) do
+            local humanoid = npc:FindFirstChild("Humanoid")
+            if humanoid and humanoid.Health > 0 then
+                local health = humanoid.Health or 0
+                local range = npc:GetAttribute("Range") or 0
+                local damage = npc:GetAttribute("Damage") or 0
+                local walkSpeed = humanoid.WalkSpeed or 0
+
+                local healthWeight = 0.3
+                local rangeWeight = 0.2
+                local damageWeight = 0.3
+                local walkSpeedWeight = 0.2
+
+                local threat = (health * healthWeight) + 
+                               (range * rangeWeight) + 
+                               (damage * damageWeight) + 
+                               (walkSpeed * walkSpeedWeight)
+
+                totalThreat += threat
+            end
+        end
+
+        totalThreatLabel.Text = "Total Threat: " .. string.format("%.2f", totalThreat * 0.7)
+        task.wait(1) -- 每秒更新
+    end
+end)
+
