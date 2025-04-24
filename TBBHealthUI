@@ -57,79 +57,69 @@ local function createBillboard(npc, isFriendly)
     local gui = Instance.new("BillboardGui")
     gui.Name = "BillboardGui"
     gui.Adornee = npc:FindFirstChild("Head")
-    gui.Size = UDim2.new(0, 200, 0, 120) -- 调整大小以容纳更多信息
+    gui.Size = UDim2.new(0, 200, 0, 140) -- 调整大小以显示威胁度
     gui.StudsOffset = Vector3.new(0, 3, 0)
     gui.AlwaysOnTop = true
     gui.Parent = npc
 
-    local healthLabel = Instance.new("TextLabel", gui)
-    healthLabel.Size = UDim2.new(1, 0, 0.2, 0)
-    healthLabel.Position = UDim2.new(0, 0, 0, 0)
-    healthLabel.BackgroundTransparency = 1
-    healthLabel.TextColor3 = isFriendly and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-    healthLabel.Font = Enum.Font.SourceSansBold
-    healthLabel.TextScaled = true
+    local labels = {
+        { name = "healthLabel", color = isFriendly and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0), posY = 0 },
+        { name = "waitLabel", color = Color3.fromRGB(0, 170, 255), posY = 0.2 },
+        { name = "rangeLabel", color = Color3.fromRGB(255, 255, 0), posY = 0.4 },
+        { name = "damageLabel", color = Color3.fromRGB(255, 165, 0), posY = 0.6 },
+        { name = "walkSpeedLabel", color = Color3.fromRGB(0, 255, 255), posY = 0.8 },
+        { name = "threatLevelLabel", color = Color3.fromRGB(255, 0, 0), posY = 1.0 } -- 新增威胁度标签
+    }
 
-    local waitLabel = Instance.new("TextLabel", gui)
-    waitLabel.Size = UDim2.new(1, 0, 0.2, 0)
-    waitLabel.Position = UDim2.new(0, 0, 0.2, 0)
-    waitLabel.BackgroundTransparency = 1
-    waitLabel.TextColor3 = Color3.fromRGB(0, 170, 255)
-    waitLabel.Font = Enum.Font.SourceSansBold
-    waitLabel.TextScaled = true
-
-    local rangeLabel = Instance.new("TextLabel", gui)
-    rangeLabel.Size = UDim2.new(1, 0, 0.2, 0)
-    rangeLabel.Position = UDim2.new(0, 0, 0.4, 0)
-    rangeLabel.BackgroundTransparency = 1
-    rangeLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
-    rangeLabel.Font = Enum.Font.SourceSansBold
-    rangeLabel.TextScaled = true
-
-    local damageLabel = Instance.new("TextLabel", gui)
-    damageLabel.Size = UDim2.new(1, 0, 0.2, 0)
-    damageLabel.Position = UDim2.new(0, 0, 0.6, 0)
-    damageLabel.BackgroundTransparency = 1
-    damageLabel.TextColor3 = Color3.fromRGB(255, 165, 0)
-    damageLabel.Font = Enum.Font.SourceSansBold
-    damageLabel.TextScaled = true
-
-    local walkSpeedLabel = Instance.new("TextLabel", gui)
-    walkSpeedLabel.Size = UDim2.new(1, 0, 0.2, 0)
-    walkSpeedLabel.Position = UDim2.new(0, 0, 0.8, 0)
-    walkSpeedLabel.BackgroundTransparency = 1
-    walkSpeedLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
-    walkSpeedLabel.Font = Enum.Font.SourceSansBold
-    walkSpeedLabel.TextScaled = true
+    for _, labelData in ipairs(labels) do
+        local label = Instance.new("TextLabel", gui)
+        label.Size = UDim2.new(1, 0, 0.2, 0)
+        label.Position = UDim2.new(0, 0, labelData.posY, 0)
+        label.BackgroundTransparency = 1
+        label.TextColor3 = labelData.color
+        label.Font = Enum.Font.SourceSansBold
+        label.TextScaled = true
+        label.Name = labelData.name
+    end
 
     RunService.RenderStepped:Connect(function()
-        if npc:FindFirstChild("Humanoid") then
-            local humanoid = npc.Humanoid
+        local humanoid = npc:FindFirstChild("Humanoid")
+        if humanoid then
+            local healthLabel = gui:FindFirstChild("healthLabel")
+            local waitLabel = gui:FindFirstChild("waitLabel")
+            local rangeLabel = gui:FindFirstChild("rangeLabel")
+            local damageLabel = gui:FindFirstChild("damageLabel")
+            local walkSpeedLabel = gui:FindFirstChild("walkSpeedLabel")
+            local threatLevelLabel = gui:FindFirstChild("threatLevelLabel")
+
             local health = math.floor(humanoid.Health)
             healthLabel.Text = npc.Name .. " HP: " .. health
 
             local waitToMove = npc:GetAttribute("WaitToMove")
-            if waitToMove then
-                waitLabel.Text = "Wait: " .. math.floor(waitToMove + 0.5)
-            else
-                waitLabel.Text = "Wait: N/A"
-            end
+            waitLabel.Text = "Wait: " .. (waitToMove and math.floor(waitToMove + 0.5) or "N/A")
 
             local range = npc:GetAttribute("Range")
-            if range then
-                rangeLabel.Text = "Range: " .. math.floor(range)
-            else
-                rangeLabel.Text = "Range: N/A"
-            end
+            rangeLabel.Text = "Range: " .. (range and math.floor(range) or "N/A")
 
             local damage = npc:GetAttribute("Damage")
-            if damage then
-                damageLabel.Text = "Damage: " .. math.floor(damage)
-            else
-                damageLabel.Text = "Damage: N/A"
-            end
+            damageLabel.Text = "Damage: " .. (damage and math.floor(damage) or "N/A")
 
-            walkSpeedLabel.Text = "WalkSpeed: " .. math.floor(humanoid.WalkSpeed)
+            local walkSpeed = math.floor(humanoid.WalkSpeed)
+            walkSpeedLabel.Text = "WalkSpeed: " .. walkSpeed
+
+            -- 定义属性权重
+            local healthWeight = 0.3
+            local rangeWeight = 0.2
+            local damageWeight = 0.3
+            local walkSpeedWeight = 0.2
+
+            -- 计算威胁度
+            local threatLevel = (health * healthWeight) + 
+                                (range and range * rangeWeight or 0) + 
+                                (damage and damage * damageWeight or 0) + 
+                                (walkSpeed * walkSpeedWeight)
+
+            threatLevelLabel.Text = "Threat Level: " .. string.format("%.2f", threatLevel)
         end
     end)
 end
