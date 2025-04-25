@@ -116,6 +116,14 @@ local function createBillboard(npc, isFriendly)
             damageLabel.Text = "Damage: " .. damage
             walkSpeedLabel.Text = "Walk Speed: " .. math.floor(humanoid.WalkSpeed)
             waitTimeLabel.Text = "Wait Time: " .. waitTime
+
+            -- 更新血量颜色
+            local healthPercent = humanoid.Health / humanoid.MaxHealth
+            if isFriendly then
+                healthLabel.TextColor3 = Color3.fromHSV(0.33, 1, healthPercent) -- 绿色到红色
+            else
+                healthLabel.TextColor3 = Color3.fromHSV(0, 1, healthPercent) -- 绿色到红色
+            end
         end
     end)
 end
