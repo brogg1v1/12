@@ -54,92 +54,6 @@ closeButton.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- 控制面板
-local controlToggle = Instance.new("TextButton", ScreenGui)
-controlToggle.Size = UDim2.new(0, 100, 0, 25)
-controlToggle.Position = UDim2.new(0.01, 0, 0.12, 0)
-controlToggle.Text = "颜色控制面板"
-controlToggle.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-controlToggle.TextColor3 = Color3.new(1, 1, 1)
-
-local colorPanel = Instance.new("Frame", ScreenGui)
-colorPanel.Size = UDim2.new(0, 250, 0, 250)
-colorPanel.Position = UDim2.new(0.01, 0, 0.18, 0)
-colorPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-colorPanel.Visible = false
-
-controlToggle.MouseButton1Click:Connect(function()
-    colorPanel.Visible = not colorPanel.Visible
-end)
-
--- 模式切换按钮与颜色输入框生成函数
-local function createColorControl(name, yPosition)
-    local modeLabel = Instance.new("TextLabel", colorPanel)
-    modeLabel.Text = name .. " 模式:"
-    modeLabel.Position = UDim2.new(0, 10, 0, yPosition)
-    modeLabel.Size = UDim2.new(0, 100, 0, 20)
-    modeLabel.BackgroundTransparency = 1
-    modeLabel.TextColor3 = Color3.new(1, 1, 1)
-    modeLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-    local dropdown = Instance.new("TextButton", colorPanel)
-    dropdown.Position = UDim2.new(0, 110, 0, yPosition)
-    dropdown.Size = UDim2.new(0, 60, 0, 20)
-    dropdown.Text = "自动"
-    dropdown.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    dropdown.TextColor3 = Color3.new(1, 1, 1)
-
-    -- 创建 RGB 输入框及滑动按钮
-    local function createColorEntry(label, x, y)
-        local box = Instance.new("TextBox", colorPanel)
-        box.PlaceholderText = label
-        box.Position = UDim2.new(0, x, 0, y)
-        box.Size = UDim2.new(0, 40, 0, 20)
-        box.Text = "255"
-
-        local slider = Instance.new("TextButton", colorPanel)
-        slider.Position = UDim2.new(0, x + 45, 0, y)
-        slider.Size = UDim2.new(0, 40, 0, 20)
-        slider.Text = "滑动"
-        slider.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-        slider.TextColor3 = Color3.new(1, 1, 1)
-
-        slider.MouseButton1Click:Connect(function()
-            local current = tonumber(box.Text) or 255
-            current = current + 10
-            if current > 255 then current = 0 end
-            box.Text = tostring(current)
-        end)
-
-        return box
-    end
-
-    local rBox = createColorEntry("R", 10, yPosition + 25)
-    local gBox = createColorEntry("G", 90, yPosition + 25)
-    local bBox = createColorEntry("B", 170, yPosition + 25)
-
-    return dropdown, rBox, gBox, bBox
-end
-
-local enemyModeBtn, enemyR, enemyG, enemyB = createColorControl("敌方", 10)
-local friendlyModeBtn, friendlyR, friendlyG, friendlyB = createColorControl("友方", 70)
-
-enemyModeBtn.MouseButton1Click:Connect(function()
-    if enemyModeBtn.Text == "自动" then
-        enemyModeBtn.Text = "手动"
-    else
-        enemyModeBtn.Text = "自动"
-    end
-end)
-
-friendlyModeBtn.MouseButton1Click:Connect(function()
-    if friendlyModeBtn.Text == "自动" then
-        friendlyModeBtn.Text = "手动"
-    else
-        friendlyModeBtn.Text = "自动"
-    end
-end)
-
 -- 创建血条 BillboardGui
 local function createBillboard(npc, isFriendly)
     if npc:FindFirstChild("BillboardGui") then return end
@@ -147,14 +61,14 @@ local function createBillboard(npc, isFriendly)
     local gui = Instance.new("BillboardGui")
     gui.Name = "BillboardGui"
     gui.Adornee = npc:FindFirstChild("Head")
-    gui.Size = UDim2.new(0, 200, 0, 140)
+    gui.Size = UDim2.new(0, 200, 0, 180)
     gui.StudsOffset = Vector3.new(0, 3, 0)
     gui.AlwaysOnTop = true
     gui.Parent = npc
 
     -- 显示 NPC 名称
     local nameLabel = Instance.new("TextLabel", gui)
-    nameLabel.Size = UDim2.new(1, 0, 0.2, 0)
+    nameLabel.Size = UDim2.new(1, 0, 0.1, 0)
     nameLabel.Position = UDim2.new(0, 0, 0, 0)
     nameLabel.BackgroundTransparency = 1
     nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -162,16 +76,18 @@ local function createBillboard(npc, isFriendly)
     nameLabel.TextScaled = true
     nameLabel.Text = npc.Name
 
-    -- 显示健康、威胁、等待、攻击范围等
+    -- 显示生命、攻击范围、伤害、移动速度等信息
     local labels = {
-        { name = "healthLabel", color = Color3.fromRGB(255, 255, 255), posY = 0.2 },
-        { name = "threatLevelLabel", color = Color3.fromRGB(255, 0, 0), posY = 0.4 },
-        { name = "walkSpeedLabel", color = Color3.fromRGB(0, 255, 255), posY = 0.6 }
+        { name = "healthLabel", label = "Health", color = Color3.fromRGB(255, 255, 255), posY = 0.1 },
+        { name = "attackRangeLabel", label = "Attack Range", color = Color3.fromRGB(255, 165, 0), posY = 0.2 },
+        { name = "damageLabel", label = "Damage", color = Color3.fromRGB(255, 0, 0), posY = 0.3 },
+        { name = "walkSpeedLabel", label = "Walk Speed", color = Color3.fromRGB(0, 255, 255), posY = 0.4 },
+        { name = "waitTimeLabel", label = "Wait Time", color = Color3.fromRGB(0, 255, 0), posY = 0.5 }
     }
 
     for _, labelData in ipairs(labels) do
         local label = Instance.new("TextLabel", gui)
-        label.Size = UDim2.new(1, 0, 0.2, 0)
+        label.Size = UDim2.new(1, 0, 0.1, 0)
         label.Position = UDim2.new(0, 0, labelData.posY, 0)
         label.BackgroundTransparency = 1
         label.TextColor3 = labelData.color
@@ -180,17 +96,26 @@ local function createBillboard(npc, isFriendly)
         label.Name = labelData.name
     end
 
-    -- 动态更新显示的血量、威胁值等
+    -- 动态更新显示的血量、攻击范围、伤害、移动速度、等待时间等
     RunService.RenderStepped:Connect(function()
         local humanoid = npc:FindFirstChild("Humanoid")
         if humanoid then
             local healthLabel = gui:FindFirstChild("healthLabel")
-            local threatLabel = gui:FindFirstChild("threatLevelLabel")
+            local attackRangeLabel = gui:FindFirstChild("attackRangeLabel")
+            local damageLabel = gui:FindFirstChild("damageLabel")
             local walkSpeedLabel = gui:FindFirstChild("walkSpeedLabel")
+            local waitTimeLabel = gui:FindFirstChild("waitTimeLabel")
+
+            -- 假设伤害和攻击范围是由 NPC 的属性来决定的
+            local attackRange = npc:FindFirstChild("AttackRange") and npc.AttackRange.Value or 10
+            local damage = npc:FindFirstChild("Damage") and npc.Damage.Value or 5
+            local waitTime = npc:FindFirstChild("WaitTime") and npc.WaitTime.Value or 2
 
             healthLabel.Text = "Health: " .. math.floor(humanoid.Health) .. " / " .. math.floor(humanoid.MaxHealth)
-            threatLabel.Text = "威胁值: " .. math.floor(humanoid.Health / humanoid.MaxHealth * 100)
-            walkSpeedLabel.Text = "移动速度: " .. math.floor(humanoid.WalkSpeed)
+            attackRangeLabel.Text = "Attack Range: " .. attackRange
+            damageLabel.Text = "Damage: " .. damage
+            walkSpeedLabel.Text = "Walk Speed: " .. math.floor(humanoid.WalkSpeed)
+            waitTimeLabel.Text = "Wait Time: " .. waitTime
         end
     end)
 end
