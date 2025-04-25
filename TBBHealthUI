@@ -67,8 +67,38 @@ colorPanel.Size = UDim2.new(0, 250, 0, 250)
 colorPanel.Position = UDim2.new(0.01, 0, 0.18, 0)
 colorPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 colorPanel.Visible = false
-colorPanel.Draggable = true
-colorPanel.Active = true
+
+-- 添加拖动功能
+local function makeDraggable(frame)
+    local dragging = false
+    local dragInput, dragStart, startPos
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            input.Consumed = true
+        end
+    end)
+
+    frame.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    frame.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+end
+
+-- 让颜色控制面板和按钮都可拖动
+makeDraggable(controlToggle)
+makeDraggable(colorPanel)
 
 controlToggle.MouseButton1Click:Connect(function()
     colorPanel.Visible = not colorPanel.Visible
@@ -193,64 +223,43 @@ local function createBillboard(npc, isFriendly)
                 if isFriendly then
                     healthLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
                 else
-                    healthLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    healthLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
                 end
             else
-                local r = tonumber((isFriendly and friendlyR.Text or enemyR.Text)) or 255
-                local g = tonumber((isFriendly and friendlyG.Text or enemyG.Text)) or 255
-                local b = tonumber((isFriendly and friendlyB.Text or enemyB.Text)) or 255
-                healthLabel.TextColor3 = Color3.fromRGB(r, g, b)
+                healthLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             end
         end
     end)
 end
 
--- 总威胁值刷新
-local function updateTotalThreat()
-    local sum = 0
-    for _, npc in ipairs(EnemyFolder:GetChildren()) do
-        local humanoid = npc:FindFirstChild("Humanoid")
-        if humanoid then
-            local health = math.floor(humanoid.Health)
-            local range = npc:GetAttribute("Range")
-            local damage = npc:GetAttribute("Damage")
-            local walkSpeed = math.floor(humanoid.WalkSpeed)
-
-            local healthW, rangeW, damageW, speedW = 0.3, 0.2, 0.3, 0.2
-            local threat = 0
-            if health ~= math.huge then threat += health * healthW end
-            if range and range ~= math.huge then threat += range * rangeW end
-            if damage and damage ~= math.huge then threat += damage * damageW end
-            if walkSpeed ~= math.huge then threat += walkSpeed * speedW end
-            sum += threat * 0.7
-        end
-    end
-
-    totalThreatLabel.Text = "关卡总威胁值: " .. math.floor(sum)
-    if sum > 6000 then
-        totalThreatLabel.TextColor3 = Color3.fromRGB(180, 30, 30)
-    elseif sum > 4000 then
-        totalThreatLabel.TextColor3 = Color3.fromRGB(220, 60, 60)
-    elseif sum > 2500 then
-        totalThreatLabel.TextColor3 = Color3.fromRGB(255, 120, 120)
-    else
-        totalThreatLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    end
+-- 为敌方和友方 NPC 创建血条
+for _, npc in ipairs(EnemyFolder:GetChildren()) do
+    createBillboard(npc, false)
 end
 
--- 初始化循环
-RunService.RenderStepped:Connect(updateTotalThreat)
+for _, npc in ipairs(FriendlyFolder:GetChildren()) do
+    createBillboard(npc, true)
+end
 
-task.spawn(function()
-    while true do
-        for _, folder in ipairs({FriendlyFolder, EnemyFolder}) do
-            local isFriendly = folder == FriendlyFolder
-            for _, npc in ipairs(folder:GetChildren()) do
-                if npc:FindFirstChild("Humanoid") then
-                    createBillboard(npc, isFriendly)
-                end
-            end
-        end
-        task.wait(1)
-    end
+-- 监听 NPC 的出现
+EnemyFolder.ChildAdded:Connect(function(npc)
+    createBillboard(npc, false)
 end)
+
+FriendlyFolder.ChildAdded:Connect(function(npc)
+    createBillboard(npc, true)
+end)
+
+-- 更新总威胁值
+local function updateTotalThreat()
+    local totalThreat = 0
+    for _, npc in ipairs(EnemyFolder:GetChildren()) do
+        local threatLevel = npc:FindFirstChild("threatLevel")
+        if threatLevel then
+            totalThreat += threatLevel.Value
+        end
+    end
+    totalThreatLabel.Text = "总威胁值: " .. math.floor(totalThreat)
+end
+
+RunService.Heartbeat:Connect(updateTotalThreat)
