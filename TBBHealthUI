@@ -54,6 +54,76 @@ closeButton.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
+-- 控制面板
+local controlToggle = Instance.new("TextButton", ScreenGui)
+controlToggle.Size = UDim2.new(0, 100, 0, 25)
+controlToggle.Position = UDim2.new(0.01, 0, 0.12, 0)
+controlToggle.Text = "颜色控制面板"
+controlToggle.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+controlToggle.TextColor3 = Color3.new(1, 1, 1)
+
+local colorPanel = Instance.new("Frame", ScreenGui)
+colorPanel.Size = UDim2.new(0, 250, 0, 250)
+colorPanel.Position = UDim2.new(0.01, 0, 0.18, 0)
+colorPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+colorPanel.Visible = false
+
+controlToggle.MouseButton1Click:Connect(function()
+    colorPanel.Visible = not colorPanel.Visible
+end)
+
+-- 模式切换按钮与颜色输入框生成函数
+local function createColorControl(name, yPosition)
+    local modeLabel = Instance.new("TextLabel", colorPanel)
+    modeLabel.Text = name .. " 模式:"
+    modeLabel.Position = UDim2.new(0, 10, 0, yPosition)
+    modeLabel.Size = UDim2.new(0, 100, 0, 20)
+    modeLabel.BackgroundTransparency = 1
+    modeLabel.TextColor3 = Color3.new(1, 1, 1)
+    modeLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    local dropdown = Instance.new("TextButton", colorPanel)
+    dropdown.Position = UDim2.new(0, 110, 0, yPosition)
+    dropdown.Size = UDim2.new(0, 60, 0, 20)
+    dropdown.Text = "自动"
+    dropdown.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    dropdown.TextColor3 = Color3.new(1, 1, 1)
+
+    local rBox = Instance.new("TextBox", colorPanel)
+    rBox.PlaceholderText = "R"
+    rBox.Position = UDim2.new(0, 10, 0, yPosition + 25)
+    rBox.Size = UDim2.new(0, 60, 0, 20)
+    local gBox = Instance.new("TextBox", colorPanel)
+    gBox.PlaceholderText = "G"
+    gBox.Position = UDim2.new(0, 80, 0, yPosition + 25)
+    gBox.Size = UDim2.new(0, 60, 0, 20)
+    local bBox = Instance.new("TextBox", colorPanel)
+    bBox.PlaceholderText = "B"
+    bBox.Position = UDim2.new(0, 150, 0, yPosition + 25)
+    bBox.Size = UDim2.new(0, 60, 0, 20)
+
+    return dropdown, rBox, gBox, bBox
+end
+
+local enemyModeBtn, enemyR, enemyG, enemyB = createColorControl("敌方", 10)
+local friendlyModeBtn, friendlyR, friendlyG, friendlyB = createColorControl("友方", 70)
+
+enemyModeBtn.MouseButton1Click:Connect(function()
+    if enemyModeBtn.Text == "自动" then
+        enemyModeBtn.Text = "手动"
+    else
+        enemyModeBtn.Text = "自动"
+    end
+end)
+
+friendlyModeBtn.MouseButton1Click:Connect(function()
+    if friendlyModeBtn.Text == "自动" then
+        friendlyModeBtn.Text = "手动"
+    else
+        friendlyModeBtn.Text = "自动"
+    end
+end)
+
 -- 创建血条 BillboardGui
 local function createBillboard(npc, isFriendly)
     if npc:FindFirstChild("BillboardGui") then return end
@@ -61,33 +131,23 @@ local function createBillboard(npc, isFriendly)
     local gui = Instance.new("BillboardGui")
     gui.Name = "BillboardGui"
     gui.Adornee = npc:FindFirstChild("Head")
-    gui.Size = UDim2.new(0, 200, 0, 180)
+    gui.Size = UDim2.new(0, 200, 0, 140)
     gui.StudsOffset = Vector3.new(0, 3, 0)
     gui.AlwaysOnTop = true
     gui.Parent = npc
 
-    -- 显示 NPC 名称
-    local nameLabel = Instance.new("TextLabel", gui)
-    nameLabel.Size = UDim2.new(1, 0, 0.1, 0)
-    nameLabel.Position = UDim2.new(0, 0, 0, 0)
-    nameLabel.BackgroundTransparency = 1
-    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    nameLabel.Font = Enum.Font.SourceSansBold
-    nameLabel.TextScaled = true
-    nameLabel.Text = npc.Name
-
-    -- 显示生命、攻击范围、伤害、移动速度等信息
     local labels = {
-        { name = "healthLabel", label = "Health", color = Color3.fromRGB(255, 255, 255), posY = 0.1 },
-        { name = "attackRangeLabel", label = "Attack Range", color = Color3.fromRGB(255, 165, 0), posY = 0.2 },
-        { name = "damageLabel", label = "Damage", color = Color3.fromRGB(255, 0, 0), posY = 0.3 },
-        { name = "walkSpeedLabel", label = "Walk Speed", color = Color3.fromRGB(0, 255, 255), posY = 0.4 },
-        { name = "waitTimeLabel", label = "Wait Time", color = Color3.fromRGB(0, 255, 0), posY = 0.5 }
+        { name = "healthLabel", color = Color3.fromRGB(255, 255, 255), posY = 0 },
+        { name = "waitLabel", color = Color3.fromRGB(0, 170, 255), posY = 0.2 },
+        { name = "rangeLabel", color = Color3.fromRGB(255, 255, 0), posY = 0.4 },
+        { name = "damageLabel", color = Color3.fromRGB(255, 165, 0), posY = 0.6 },
+        { name = "walkSpeedLabel", color = Color3.fromRGB(0, 255, 255), posY = 0.8 },
+        { name = "threatLevelLabel", color = Color3.fromRGB(255, 0, 0), posY = 1.0 }
     }
 
     for _, labelData in ipairs(labels) do
         local label = Instance.new("TextLabel", gui)
-        label.Size = UDim2.new(1, 0, 0.1, 0)
+        label.Size = UDim2.new(1, 0, 0.2, 0)
         label.Position = UDim2.new(0, 0, labelData.posY, 0)
         label.BackgroundTransparency = 1
         label.TextColor3 = labelData.color
@@ -96,43 +156,99 @@ local function createBillboard(npc, isFriendly)
         label.Name = labelData.name
     end
 
-    -- 动态更新显示的血量、攻击范围、伤害、移动速度、等待时间等
     RunService.RenderStepped:Connect(function()
         local humanoid = npc:FindFirstChild("Humanoid")
         if humanoid then
             local healthLabel = gui:FindFirstChild("healthLabel")
-            local attackRangeLabel = gui:FindFirstChild("attackRangeLabel")
+            local waitLabel = gui:FindFirstChild("waitLabel")
+            local rangeLabel = gui:FindFirstChild("rangeLabel")
             local damageLabel = gui:FindFirstChild("damageLabel")
             local walkSpeedLabel = gui:FindFirstChild("walkSpeedLabel")
-            local waitTimeLabel = gui:FindFirstChild("waitTimeLabel")
+            local threatLevelLabel = gui:FindFirstChild("threatLevelLabel")
 
-            -- 假设伤害和攻击范围是由 NPC 的属性来决定的
-            local attackRange = npc:FindFirstChild("AttackRange") and npc.AttackRange.Value or 10
-            local damage = npc:FindFirstChild("Damage") and npc.Damage.Value or 5
-            local waitTime = npc:FindFirstChild("WaitTime") and npc.WaitTime.Value or 2
+            local health = math.floor(humanoid.Health)
+            local waitToMove = math.floor(npc:GetAttribute("WaitToMove") or 0.5)
+            local range = npc:GetAttribute("Range")
+            local damage = npc:GetAttribute("Damage")
+            local walkSpeed = math.floor(humanoid.WalkSpeed)
 
-            healthLabel.Text = "Health: " .. math.floor(humanoid.Health) .. " / " .. math.floor(humanoid.MaxHealth)
-            attackRangeLabel.Text = "Attack Range: " .. attackRange
-            damageLabel.Text = "Damage: " .. damage
-            walkSpeedLabel.Text = "Walk Speed: " .. math.floor(humanoid.WalkSpeed)
-            waitTimeLabel.Text = "Wait Time: " .. waitTime
+            local healthW, rangeW, damageW, speedW = 0.3, 0.2, 0.3, 0.2
+            local threatLevel = 0
+            if health ~= math.huge then threatLevel += health * healthW end
+            if range and range ~= math.huge then threatLevel += range * rangeW end
+            if damage and damage ~= math.huge then threatLevel += damage * damageW end
+            if walkSpeed ~= math.huge then threatLevel += walkSpeed * speedW end
 
-            -- 更新血量颜色
-            local healthPercent = humanoid.Health / humanoid.MaxHealth
-            if isFriendly then
-                healthLabel.TextColor3 = Color3.fromHSV(0.33, 1, healthPercent) -- 绿色到红色
+            healthLabel.Text = npc.Name .. " HP: " .. health
+            waitLabel.Text = "Wait: " .. waitToMove
+            rangeLabel.Text = "Range: " .. (range and math.floor(range) or "N/A")
+            damageLabel.Text = "Damage: " .. (damage and math.floor(damage) or "N/A")
+            walkSpeedLabel.Text = "WalkSpeed: " .. walkSpeed
+            threatLevelLabel.Text = "Threat Level: " .. string.format("%.2f", threatLevel)
+
+            local mode = isFriendly and friendlyModeBtn.Text or enemyModeBtn.Text
+            if mode == "自动" then
+                if isFriendly then
+                    healthLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+                else
+                    healthLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                end
             else
-                healthLabel.TextColor3 = Color3.fromHSV(0, 1, healthPercent) -- 绿色到红色
+                local r = tonumber((isFriendly and friendlyR.Text or enemyR.Text)) or 255
+                local g = tonumber((isFriendly and friendlyG.Text or enemyG.Text)) or 255
+                local b = tonumber((isFriendly and friendlyB.Text or enemyB.Text)) or 255
+                healthLabel.TextColor3 = Color3.fromRGB(r, g, b)
             end
         end
     end)
 end
 
--- 创建敌我 NPC 并附加血条
-for _, npc in ipairs(FriendlyFolder:GetChildren()) do
-    createBillboard(npc, true)
+-- 总威胁值刷新
+local function updateTotalThreat()
+    local sum = 0
+    for _, npc in ipairs(EnemyFolder:GetChildren()) do
+        local humanoid = npc:FindFirstChild("Humanoid")
+        if humanoid then
+            local health = math.floor(humanoid.Health)
+            local range = npc:GetAttribute("Range")
+            local damage = npc:GetAttribute("Damage")
+            local walkSpeed = math.floor(humanoid.WalkSpeed)
+
+            local healthW, rangeW, damageW, speedW = 0.3, 0.2, 0.3, 0.2
+            local threat = 0
+            if health ~= math.huge then threat += health * healthW end
+            if range and range ~= math.huge then threat += range * rangeW end
+            if damage and damage ~= math.huge then threat += damage * damageW end
+            if walkSpeed ~= math.huge then threat += walkSpeed * speedW end
+            sum += threat * 0.7
+        end
+    end
+
+    totalThreatLabel.Text = "关卡总威胁值: " .. math.floor(sum)
+    if sum > 6000 then
+        totalThreatLabel.TextColor3 = Color3.fromRGB(180, 30, 30)
+    elseif sum > 4000 then
+        totalThreatLabel.TextColor3 = Color3.fromRGB(220, 60, 60)
+    elseif sum > 2500 then
+        totalThreatLabel.TextColor3 = Color3.fromRGB(255, 120, 120)
+    else
+        totalThreatLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end
 end
 
-for _, npc in ipairs(EnemyFolder:GetChildren()) do
-    createBillboard(npc, false)
-end
+-- 初始化循环
+RunService.RenderStepped:Connect(updateTotalThreat)
+
+task.spawn(function()
+    while true do
+        for _, folder in ipairs({FriendlyFolder, EnemyFolder}) do
+            local isFriendly = folder == FriendlyFolder
+            for _, npc in ipairs(folder:GetChildren()) do
+                if npc:FindFirstChild("Humanoid") then
+                    createBillboard(npc, isFriendly)
+                end
+            end
+        end
+        task.wait(1)
+    end
+end)
