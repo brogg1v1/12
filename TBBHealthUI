@@ -1,32 +1,24 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local NPCFolders = workspace:WaitForChild("NPCFolders")
 local FriendlyFolder = NPCFolders:WaitForChild("FriendlyFolder")
 local EnemyFolder = NPCFolders:WaitForChild("EnemyFolder")
 
--- 主 UI 窗口
-local ScreenGui = Instance.new("ScreenGui")
+local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
 ScreenGui.Name = "NPCHealthUI"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.Enabled = true
-ScreenGui.Parent = PlayerGui
 
--- 标题窗口
-local header = Instance.new("Frame")
-header.Size = UDim2.new(0, 300, 0, 30)
-header.Position = UDim2.new(0.4, 0, 0, 50)
+local header = Instance.new("Frame", ScreenGui)
+header.Size = UDim2.new(0.18, 0, 0, 30)
+header.Position = UDim2.new(0, 20, 0, 20)
 header.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 header.BackgroundTransparency = 0.3
 header.BorderSizePixel = 0
-header.Active = true
 header.Draggable = true
-header.ZIndex = 100
-header.Parent = ScreenGui
+header.Active = true
 
-local headerText = Instance.new("TextLabel")
+local headerText = Instance.new("TextLabel", header)
 headerText.Size = UDim2.new(1, -60, 1, 0)
 headerText.Text = "NPC Health Display"
 headerText.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -34,9 +26,8 @@ headerText.Font = Enum.Font.SourceSansBold
 headerText.TextSize = 14
 headerText.BackgroundTransparency = 1
 headerText.TextXAlignment = Enum.TextXAlignment.Left
-headerText.Parent = header
 
-local closeButton = Instance.new("TextButton")
+local closeButton = Instance.new("TextButton", header)
 closeButton.Size = UDim2.new(0, 30, 1, 0)
 closeButton.Position = UDim2.new(1, -30, 0, 0)
 closeButton.Text = "X"
@@ -44,24 +35,20 @@ closeButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeButton.Font = Enum.Font.SourceSansBold
 closeButton.BorderSizePixel = 0
-closeButton.Parent = header
 
--- 总威胁值 UI
-local totalThreatLabel = Instance.new("TextLabel")
-totalThreatLabel.Size = UDim2.new(0, 300, 0, 30)
-totalThreatLabel.Position = UDim2.new(0.5, -150, 0, 0)
-totalThreatLabel.BackgroundTransparency = 0.5
-totalThreatLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-totalThreatLabel.TextColor3 = Color3.new(1, 1, 1)
+-- 总威胁值显示
+local totalThreatLabel = Instance.new("TextLabel", ScreenGui)
+totalThreatLabel.Size = UDim2.new(0.2, 0, 0, 40)
+totalThreatLabel.Position = UDim2.new(0.5, -100, 0, 0)
+totalThreatLabel.BackgroundTransparency = 0.4
+totalThreatLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+totalThreatLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 totalThreatLabel.Font = Enum.Font.SourceSansBold
 totalThreatLabel.TextScaled = true
-totalThreatLabel.Text = "Total Threat: 0.00"
-totalThreatLabel.ZIndex = 100
-totalThreatLabel.Parent = ScreenGui
+totalThreatLabel.Text = "Threat Level: 0"
 
--- 创建 BillboardGui
 local function createBillboard(npc, isFriendly)
-    if not npc:FindFirstChild("Head") or npc:FindFirstChild("BillboardGui") then return end
+    if npc:FindFirstChild("BillboardGui") then return end
 
     local gui = Instance.new("BillboardGui")
     gui.Name = "BillboardGui"
@@ -81,84 +68,101 @@ local function createBillboard(npc, isFriendly)
     }
 
     for _, labelData in ipairs(labels) do
-        local label = Instance.new("TextLabel")
-        label.Name = labelData.name
+        local label = Instance.new("TextLabel", gui)
         label.Size = UDim2.new(1, 0, 0.2, 0)
         label.Position = UDim2.new(0, 0, labelData.posY, 0)
         label.BackgroundTransparency = 1
         label.TextColor3 = labelData.color
         label.Font = Enum.Font.SourceSansBold
         label.TextScaled = true
-        label.Parent = gui
+        label.Name = labelData.name
     end
+
+    RunService.RenderStepped:Connect(function()
+        if not npc or not npc.Parent then return end
+
+        local humanoid = npc:FindFirstChild("Humanoid")
+        if humanoid then
+            local healthLabel = gui:FindFirstChild("healthLabel")
+            local waitLabel = gui:FindFirstChild("waitLabel")
+            local rangeLabel = gui:FindFirstChild("rangeLabel")
+            local damageLabel = gui:FindFirstChild("damageLabel")
+            local walkSpeedLabel = gui:FindFirstChild("walkSpeedLabel")
+            local threatLevelLabel = gui:FindFirstChild("threatLevelLabel")
+
+            local health = math.floor(humanoid.Health)
+            healthLabel.Text = npc.Name .. " HP: " .. health
+
+            local waitToMove = npc:GetAttribute("WaitToMove")
+            waitLabel.Text = "Wait: " .. (waitToMove and math.floor(waitToMove + 0.5) or "N/A")
+
+            local range = npc:GetAttribute("Range")
+            rangeLabel.Text = "Range: " .. (range and math.floor(range) or "N/A")
+
+            local damage = npc:GetAttribute("Damage")
+            damageLabel.Text = "Damage: " .. (damage and math.floor(damage) or "N/A")
+
+            local walkSpeed = math.floor(humanoid.WalkSpeed)
+            walkSpeedLabel.Text = "WalkSpeed: " .. walkSpeed
+
+            -- 威胁值计算（跳过 inf）
+            local function isValid(n)
+                return typeof(n) == "number" and n < math.huge
+            end
+
+            local healthWeight = 0.3
+            local rangeWeight = 0.2
+            local damageWeight = 0.3
+            local walkSpeedWeight = 0.2
+
+            local threatLevel = 0
+            if isValid(health) then threatLevel += health * healthWeight end
+            if isValid(range) then threatLevel += range * rangeWeight end
+            if isValid(damage) then threatLevel += damage * damageWeight end
+            if isValid(walkSpeed) then threatLevel += walkSpeed * walkSpeedWeight end
+
+            threatLevelLabel.Text = "Threat Level: " .. string.format("%.2f", threatLevel)
+            npc:SetAttribute("CalculatedThreat", threatLevel)
+        end
+    end)
 end
 
--- 每帧更新 NPC 信息 & 总威胁值
-RunService.RenderStepped:Connect(function()
-    local totalThreat = 0
+closeButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
 
-    for _, folder in ipairs({FriendlyFolder, EnemyFolder}) do
-        local isFriendly = folder == FriendlyFolder
-        for _, npc in ipairs(folder:GetChildren()) do
-            local humanoid = npc:FindFirstChild("Humanoid")
-            if humanoid then
-                if not npc:FindFirstChild("BillboardGui") then
+task.spawn(function()
+    while true do
+        for _, folder in ipairs({FriendlyFolder, EnemyFolder}) do
+            local isFriendly = folder == FriendlyFolder
+            for _, npc in ipairs(folder:GetChildren()) do
+                if npc:FindFirstChild("Humanoid") then
                     createBillboard(npc, isFriendly)
-                end
-
-                local gui = npc:FindFirstChild("BillboardGui")
-                if gui then
-                    local healthLabel = gui:FindFirstChild("healthLabel")
-                    local waitLabel = gui:FindFirstChild("waitLabel")
-                    local rangeLabel = gui:FindFirstChild("rangeLabel")
-                    local damageLabel = gui:FindFirstChild("damageLabel")
-                    local walkSpeedLabel = gui:FindFirstChild("walkSpeedLabel")
-                    local threatLevelLabel = gui:FindFirstChild("threatLevelLabel")
-
-                    local health = math.floor(humanoid.Health)
-                    local walkSpeed = math.floor(humanoid.WalkSpeed)
-                    local waitToMove = npc:GetAttribute("WaitToMove")
-                    local range = npc:GetAttribute("Range")
-                    local damage = npc:GetAttribute("Damage")
-
-                    if healthLabel then healthLabel.Text = npc.Name .. " HP: " .. health end
-                    if waitLabel then waitLabel.Text = "Wait: " .. (waitToMove and math.floor(waitToMove + 0.5) or "N/A") end
-                    if rangeLabel then rangeLabel.Text = "Range: " .. (range and math.floor(range) or "N/A") end
-                    if damageLabel then damageLabel.Text = "Damage: " .. (damage and math.floor(damage) or "N/A") end
-                    if walkSpeedLabel then walkSpeedLabel.Text = "WalkSpeed: " .. walkSpeed end
-
-                    local threatLevel = (health * 0.3) + 
-                                        ((range or 0) * 0.2) + 
-                                        ((damage or 0) * 0.3) + 
-                                        (walkSpeed * 0.2)
-                    
-                    if threatLevelLabel then
-                        threatLevelLabel.Text = "Threat Level: " .. string.format("%.2f", threatLevel)
-                    end
-
-                    if not isFriendly then
-                        totalThreat += threatLevel * 0.7
-                    end
                 end
             end
         end
+
+        -- 更新总威胁值
+        local totalThreat = 0
+        for _, npc in ipairs(EnemyFolder:GetChildren()) do
+            local value = npc:GetAttribute("CalculatedThreat")
+            if typeof(value) == "number" and value < math.huge then
+                totalThreat += value * 0.7
+            end
+        end
+
+        totalThreatLabel.Text = "Threat Level: " .. string.format("%.0f", totalThreat)
+
+        if totalThreat > 6000 then
+            totalThreatLabel.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+        elseif totalThreat > 4000 then
+            totalThreatLabel.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+        elseif totalThreat > 2500 then
+            totalThreatLabel.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+        else
+            totalThreatLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        end
+
+        task.wait(1)
     end
-
-    -- 设置颜色
-    local color = Color3.fromRGB(255, 255, 255)
-    if totalThreat > 6000 then
-        color = Color3.fromRGB(200, 0, 0)
-    elseif totalThreat > 4000 then
-        color = Color3.fromRGB(255, 64, 64)
-    elseif totalThreat > 2500 then
-        color = Color3.fromRGB(255, 128, 128)
-    end
-
-    totalThreatLabel.Text = "Total Threat: " .. string.format("%.2f", totalThreat)
-    totalThreatLabel.TextColor3 = color
-end)
-
--- 关闭按钮
-closeButton.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
 end)
