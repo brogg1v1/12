@@ -67,8 +67,6 @@ colorPanel.Size = UDim2.new(0, 250, 0, 250)
 colorPanel.Position = UDim2.new(0.01, 0, 0.18, 0)
 colorPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 colorPanel.Visible = false
-colorPanel.Draggable = true
-colorPanel.Active = true
 
 controlToggle.MouseButton1Click:Connect(function()
     colorPanel.Visible = not colorPanel.Visible
