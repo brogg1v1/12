@@ -152,13 +152,21 @@ local function createBillboard(npc, isFriendly)
     gui.AlwaysOnTop = true
     gui.Parent = npc
 
+    -- 显示 NPC 名称
+    local nameLabel = Instance.new("TextLabel", gui)
+    nameLabel.Size = UDim2.new(1, 0, 0.2, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    nameLabel.Font = Enum.Font.SourceSansBold
+    nameLabel.TextScaled = true
+    nameLabel.Text = npc.Name
+
+    -- 显示健康、威胁、等待、攻击范围等
     local labels = {
-        { name = "healthLabel", color = Color3.fromRGB(255, 255, 255), posY = 0 },
-        { name = "waitLabel", color = Color3.fromRGB(0, 170, 255), posY = 0.2 },
-        { name = "rangeLabel", color = Color3.fromRGB(255, 255, 0), posY = 0.4 },
-        { name = "damageLabel", color = Color3.fromRGB(255, 165, 0), posY = 0.6 },
-        { name = "walkSpeedLabel", color = Color3.fromRGB(0, 255, 255), posY = 0.8 },
-        { name = "threatLevelLabel", color = Color3.fromRGB(255, 0, 0), posY = 1.0 }
+        { name = "healthLabel", color = Color3.fromRGB(255, 255, 255), posY = 0.2 },
+        { name = "threatLevelLabel", color = Color3.fromRGB(255, 0, 0), posY = 0.4 },
+        { name = "walkSpeedLabel", color = Color3.fromRGB(0, 255, 255), posY = 0.6 }
     }
 
     for _, labelData in ipairs(labels) do
@@ -172,10 +180,26 @@ local function createBillboard(npc, isFriendly)
         label.Name = labelData.name
     end
 
+    -- 动态更新显示的血量、威胁值等
     RunService.RenderStepped:Connect(function()
         local humanoid = npc:FindFirstChild("Humanoid")
         if humanoid then
             local healthLabel = gui:FindFirstChild("healthLabel")
-            local waitLabel = gui:FindFirstChild("waitLabel")
-            local rangeLabel = gui:FindFirstChild("rangeLabel")
-            local damageLabel =
+            local threatLabel = gui:FindFirstChild("threatLevelLabel")
+            local walkSpeedLabel = gui:FindFirstChild("walkSpeedLabel")
+
+            healthLabel.Text = "Health: " .. math.floor(humanoid.Health) .. " / " .. math.floor(humanoid.MaxHealth)
+            threatLabel.Text = "威胁值: " .. math.floor(humanoid.Health / humanoid.MaxHealth * 100)
+            walkSpeedLabel.Text = "移动速度: " .. math.floor(humanoid.WalkSpeed)
+        end
+    end)
+end
+
+-- 创建敌我 NPC 并附加血条
+for _, npc in ipairs(FriendlyFolder:GetChildren()) do
+    createBillboard(npc, true)
+end
+
+for _, npc in ipairs(EnemyFolder:GetChildren()) do
+    createBillboard(npc, false)
+end
