@@ -89,18 +89,34 @@ local function createColorControl(name, yPosition)
     dropdown.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
     dropdown.TextColor3 = Color3.new(1, 1, 1)
 
-    local rBox = Instance.new("TextBox", colorPanel)
-    rBox.PlaceholderText = "R"
-    rBox.Position = UDim2.new(0, 10, 0, yPosition + 25)
-    rBox.Size = UDim2.new(0, 60, 0, 20)
-    local gBox = Instance.new("TextBox", colorPanel)
-    gBox.PlaceholderText = "G"
-    gBox.Position = UDim2.new(0, 80, 0, yPosition + 25)
-    gBox.Size = UDim2.new(0, 60, 0, 20)
-    local bBox = Instance.new("TextBox", colorPanel)
-    bBox.PlaceholderText = "B"
-    bBox.Position = UDim2.new(0, 150, 0, yPosition + 25)
-    bBox.Size = UDim2.new(0, 60, 0, 20)
+    -- 创建 RGB 输入框及滑动按钮
+    local function createColorEntry(label, x, y)
+        local box = Instance.new("TextBox", colorPanel)
+        box.PlaceholderText = label
+        box.Position = UDim2.new(0, x, 0, y)
+        box.Size = UDim2.new(0, 40, 0, 20)
+        box.Text = "255"
+
+        local slider = Instance.new("TextButton", colorPanel)
+        slider.Position = UDim2.new(0, x + 45, 0, y)
+        slider.Size = UDim2.new(0, 40, 0, 20)
+        slider.Text = "滑动"
+        slider.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        slider.TextColor3 = Color3.new(1, 1, 1)
+
+        slider.MouseButton1Click:Connect(function()
+            local current = tonumber(box.Text) or 255
+            current = current + 10
+            if current > 255 then current = 0 end
+            box.Text = tostring(current)
+        end)
+
+        return box
+    end
+
+    local rBox = createColorEntry("R", 10, yPosition + 25)
+    local gBox = createColorEntry("G", 90, yPosition + 25)
+    local bBox = createColorEntry("B", 170, yPosition + 25)
 
     return dropdown, rBox, gBox, bBox
 end
@@ -162,93 +178,4 @@ local function createBillboard(npc, isFriendly)
             local healthLabel = gui:FindFirstChild("healthLabel")
             local waitLabel = gui:FindFirstChild("waitLabel")
             local rangeLabel = gui:FindFirstChild("rangeLabel")
-            local damageLabel = gui:FindFirstChild("damageLabel")
-            local walkSpeedLabel = gui:FindFirstChild("walkSpeedLabel")
-            local threatLevelLabel = gui:FindFirstChild("threatLevelLabel")
-
-            local health = math.floor(humanoid.Health)
-            local waitToMove = math.floor(npc:GetAttribute("WaitToMove") or 0.5)
-            local range = npc:GetAttribute("Range")
-            local damage = npc:GetAttribute("Damage")
-            local walkSpeed = math.floor(humanoid.WalkSpeed)
-
-            local healthW, rangeW, damageW, speedW = 0.3, 0.2, 0.3, 0.2
-            local threatLevel = 0
-            if health ~= math.huge then threatLevel += health * healthW end
-            if range and range ~= math.huge then threatLevel += range * rangeW end
-            if damage and damage ~= math.huge then threatLevel += damage * damageW end
-            if walkSpeed ~= math.huge then threatLevel += walkSpeed * speedW end
-
-            healthLabel.Text = npc.Name .. " HP: " .. health
-            waitLabel.Text = "Wait: " .. waitToMove
-            rangeLabel.Text = "Range: " .. (range and math.floor(range) or "N/A")
-            damageLabel.Text = "Damage: " .. (damage and math.floor(damage) or "N/A")
-            walkSpeedLabel.Text = "WalkSpeed: " .. walkSpeed
-            threatLevelLabel.Text = "Threat Level: " .. string.format("%.2f", threatLevel)
-
-            local mode = isFriendly and friendlyModeBtn.Text or enemyModeBtn.Text
-            if mode == "自动" then
-                if isFriendly then
-                    healthLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-                else
-                    healthLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-                end
-            else
-                local r = tonumber((isFriendly and friendlyR.Text or enemyR.Text)) or 255
-                local g = tonumber((isFriendly and friendlyG.Text or enemyG.Text)) or 255
-                local b = tonumber((isFriendly and friendlyB.Text or enemyB.Text)) or 255
-                healthLabel.TextColor3 = Color3.fromRGB(r, g, b)
-            end
-        end
-    end)
-end
-
--- 总威胁值刷新
-local function updateTotalThreat()
-    local sum = 0
-    for _, npc in ipairs(EnemyFolder:GetChildren()) do
-        local humanoid = npc:FindFirstChild("Humanoid")
-        if humanoid then
-            local health = math.floor(humanoid.Health)
-            local range = npc:GetAttribute("Range")
-            local damage = npc:GetAttribute("Damage")
-            local walkSpeed = math.floor(humanoid.WalkSpeed)
-
-            local healthW, rangeW, damageW, speedW = 0.3, 0.2, 0.3, 0.2
-            local threat = 0
-            if health ~= math.huge then threat += health * healthW end
-            if range and range ~= math.huge then threat += range * rangeW end
-            if damage and damage ~= math.huge then threat += damage * damageW end
-            if walkSpeed ~= math.huge then threat += walkSpeed * speedW end
-            sum += threat * 0.7
-        end
-    end
-
-    totalThreatLabel.Text = "关卡总威胁值: " .. math.floor(sum)
-    if sum > 6000 then
-        totalThreatLabel.TextColor3 = Color3.fromRGB(180, 30, 30)
-    elseif sum > 4000 then
-        totalThreatLabel.TextColor3 = Color3.fromRGB(220, 60, 60)
-    elseif sum > 2500 then
-        totalThreatLabel.TextColor3 = Color3.fromRGB(255, 120, 120)
-    else
-        totalThreatLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    end
-end
-
--- 初始化循环
-RunService.RenderStepped:Connect(updateTotalThreat)
-
-task.spawn(function()
-    while true do
-        for _, folder in ipairs({FriendlyFolder, EnemyFolder}) do
-            local isFriendly = folder == FriendlyFolder
-            for _, npc in ipairs(folder:GetChildren()) do
-                if npc:FindFirstChild("Humanoid") then
-                    createBillboard(npc, isFriendly)
-                end
-            end
-        end
-        task.wait(1)
-    end
-end)
+            local damageLabel =
