@@ -109,19 +109,11 @@ local enemyModeBtn, enemyR, enemyG, enemyB = createColorControl("敌方", 10)
 local friendlyModeBtn, friendlyR, friendlyG, friendlyB = createColorControl("友方", 70)
 
 enemyModeBtn.MouseButton1Click:Connect(function()
-    if enemyModeBtn.Text == "自动" then
-        enemyModeBtn.Text = "手动"
-    else
-        enemyModeBtn.Text = "自动"
-    end
+    enemyModeBtn.Text = (enemyModeBtn.Text == "自动") and "手动" or "自动"
 end)
 
 friendlyModeBtn.MouseButton1Click:Connect(function()
-    if friendlyModeBtn.Text == "自动" then
-        friendlyModeBtn.Text = "手动"
-    else
-        friendlyModeBtn.Text = "自动"
-    end
+    friendlyModeBtn.Text = (friendlyModeBtn.Text == "自动") and "手动" or "自动"
 end)
 
 -- 创建血条 BillboardGui
@@ -170,14 +162,15 @@ local function createBillboard(npc, isFriendly)
             local waitToMove = math.floor(npc:GetAttribute("WaitToMove") or 0.5)
             local range = npc:GetAttribute("Range")
             local damage = npc:GetAttribute("Damage")
-            local walkSpeed = math.floor(humanoid.WalkSpeed)
+            local walkSpeedRaw = humanoid.WalkSpeed
+            local walkSpeed = walkSpeedRaw >= 1 and math.floor(walkSpeedRaw + 0.5) or math.floor(walkSpeedRaw * 10 + 0.5) / 10
 
             local healthW, rangeW, damageW, speedW = 0.3, 0.2, 0.3, 0.2
             local threatLevel = 0
             if health ~= math.huge then threatLevel += health * healthW end
             if range and range ~= math.huge then threatLevel += range * rangeW end
             if damage and damage ~= math.huge then threatLevel += damage * damageW end
-            if walkSpeed ~= math.huge then threatLevel += walkSpeed * speedW end
+            if walkSpeedRaw ~= math.huge then threatLevel += walkSpeedRaw * speedW end
 
             healthLabel.Text = npc.Name .. " HP: " .. health
             waitLabel.Text = "Wait: " .. waitToMove
@@ -188,11 +181,7 @@ local function createBillboard(npc, isFriendly)
 
             local mode = isFriendly and friendlyModeBtn.Text or enemyModeBtn.Text
             if mode == "自动" then
-                if isFriendly then
-                    healthLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-                else
-                    healthLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-                end
+                healthLabel.TextColor3 = isFriendly and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 255, 255)
             else
                 local r = tonumber((isFriendly and friendlyR.Text or enemyR.Text)) or 255
                 local g = tonumber((isFriendly and friendlyG.Text or enemyG.Text)) or 255
@@ -212,7 +201,7 @@ local function updateTotalThreat()
             local health = math.floor(humanoid.Health)
             local range = npc:GetAttribute("Range")
             local damage = npc:GetAttribute("Damage")
-            local walkSpeed = math.floor(humanoid.WalkSpeed)
+            local walkSpeed = humanoid.WalkSpeed
 
             local healthW, rangeW, damageW, speedW = 0.3, 0.2, 0.3, 0.2
             local threat = 0
