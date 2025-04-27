@@ -5,10 +5,6 @@ local ScreenGui = LP.PlayerGui:FindFirstChild("NPCHealthUI")
 
 
 local colorPanel = ScreenGui.Frame
-colorPanel.Size = UDim2.new(0, 450, 0, 450)
-colorPanel.Position = UDim2.new(0.01, 0, 0.18, 0)
-colorPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-
 local toggleButton = Instance.new("TextButton", ScreenGui)
 toggleButton.Size = UDim2.new(0, 200, 0, 30)
 toggleButton.Position = UDim2.new(0.5, -100, 0, -30)
