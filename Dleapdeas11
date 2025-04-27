@@ -56,65 +56,96 @@ end)
 
 -- 控制面板
 local controlToggle = Instance.new("TextButton", ScreenGui)
-controlToggle.Size = UDim2.new(0, 100, 0, 25)
+controlToggle.Size = UDim2.new(0, 120, 0, 25)
 controlToggle.Position = UDim2.new(0.01, 0, 0.12, 0)
-controlToggle.Text = "颜色控制面板"
+controlToggle.Text = "颜色+显示控制面板"
 controlToggle.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
 controlToggle.TextColor3 = Color3.new(1, 1, 1)
 
 local colorPanel = Instance.new("Frame", ScreenGui)
-colorPanel.Size = UDim2.new(0, 250, 0, 250)
+colorPanel.Size = UDim2.new(0, 300, 0, 400)
 colorPanel.Position = UDim2.new(0.01, 0, 0.18, 0)
 colorPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 colorPanel.Visible = false
+colorPanel.Active = true
+colorPanel.Draggable = true
 
 controlToggle.MouseButton1Click:Connect(function()
     colorPanel.Visible = not colorPanel.Visible
 end)
 
--- 模式切换按钮与颜色输入框生成函数
-local function createColorControl(name, yPosition)
-    local modeLabel = Instance.new("TextLabel", colorPanel)
-    modeLabel.Text = name .. " 模式:"
-    modeLabel.Position = UDim2.new(0, 10, 0, yPosition)
-    modeLabel.Size = UDim2.new(0, 100, 0, 20)
-    modeLabel.BackgroundTransparency = 1
-    modeLabel.TextColor3 = Color3.new(1, 1, 1)
-    modeLabel.TextXAlignment = Enum.TextXAlignment.Left
+-- 精度模式
+local precisionMode = 0 -- 0整数, 1一位小数, 2两位小数
 
-    local dropdown = Instance.new("TextButton", colorPanel)
-    dropdown.Position = UDim2.new(0, 110, 0, yPosition)
-    dropdown.Size = UDim2.new(0, 60, 0, 20)
-    dropdown.Text = "自动"
-    dropdown.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    dropdown.TextColor3 = Color3.new(1, 1, 1)
-
-    local rBox = Instance.new("TextBox", colorPanel)
-    rBox.PlaceholderText = "R"
-    rBox.Position = UDim2.new(0, 10, 0, yPosition + 25)
-    rBox.Size = UDim2.new(0, 60, 0, 20)
-    local gBox = Instance.new("TextBox", colorPanel)
-    gBox.PlaceholderText = "G"
-    gBox.Position = UDim2.new(0, 80, 0, yPosition + 25)
-    gBox.Size = UDim2.new(0, 60, 0, 20)
-    local bBox = Instance.new("TextBox", colorPanel)
-    bBox.PlaceholderText = "B"
-    bBox.Position = UDim2.new(0, 150, 0, yPosition + 25)
-    bBox.Size = UDim2.new(0, 60, 0, 20)
-
-    return dropdown, rBox, gBox, bBox
+local function formatNumber(num)
+    if precisionMode == 0 then
+        return tostring(math.floor(num))
+    elseif precisionMode == 1 then
+        return string.format("%.1f", num)
+    else
+        return string.format("%.2f", num)
+    end
 end
 
-local enemyModeBtn, enemyR, enemyG, enemyB = createColorControl("敌方", 10)
-local friendlyModeBtn, friendlyR, friendlyG, friendlyB = createColorControl("友方", 70)
+-- 精度切换按钮
+local integerBtn = Instance.new("TextButton", colorPanel)
+integerBtn.Position = UDim2.new(0, 10, 0, 10)
+integerBtn.Size = UDim2.new(0, 80, 0, 20)
+integerBtn.Text = "整数显示"
 
-enemyModeBtn.MouseButton1Click:Connect(function()
-    enemyModeBtn.Text = enemyModeBtn.Text == "自动" and "手动" or "自动"
+local oneDecimalBtn = Instance.new("TextButton", colorPanel)
+oneDecimalBtn.Position = UDim2.new(0, 100, 0, 10)
+oneDecimalBtn.Size = UDim2.new(0, 80, 0, 20)
+oneDecimalBtn.Text = "1位小数"
+
+local twoDecimalBtn = Instance.new("TextButton", colorPanel)
+twoDecimalBtn.Position = UDim2.new(0, 190, 0, 10)
+twoDecimalBtn.Size = UDim2.new(0, 80, 0, 20)
+twoDecimalBtn.Text = "2位小数"
+
+integerBtn.MouseButton1Click:Connect(function()
+    precisionMode = 0
+end)
+oneDecimalBtn.MouseButton1Click:Connect(function()
+    precisionMode = 1
+end)
+twoDecimalBtn.MouseButton1Click:Connect(function()
+    precisionMode = 2
 end)
 
-friendlyModeBtn.MouseButton1Click:Connect(function()
-    friendlyModeBtn.Text = friendlyModeBtn.Text == "自动" and "手动" or "自动"
-end)
+-- 勾选哪些信息
+local showFields = {
+    WaitToMove = true,
+    Range = true,
+    Damage = true,
+    WalkSpeed = true,
+    Resistance = true,
+    Armor = true,
+    AttackRate = true,
+    AreaAttack = true,
+    AntiTrait = true,
+    DPS = true,
+}
+
+local function createCheckbox(fieldName, posY)
+    local checkbox = Instance.new("TextButton", colorPanel)
+    checkbox.Position = UDim2.new(0, 10, 0, posY)
+    checkbox.Size = UDim2.new(0, 200, 0, 20)
+    checkbox.Text = fieldName .. ": 开"
+    checkbox.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    checkbox.TextColor3 = Color3.new(1,1,1)
+
+    checkbox.MouseButton1Click:Connect(function()
+        showFields[fieldName] = not showFields[fieldName]
+        checkbox.Text = fieldName .. ": " .. (showFields[fieldName] and "开" or "关")
+    end)
+end
+
+local y = 40
+for fieldName, _ in pairs(showFields) do
+    createCheckbox(fieldName, y)
+    y += 25
+end
 
 -- 创建血条 BillboardGui
 local function createBillboard(npc, isFriendly)
@@ -123,69 +154,79 @@ local function createBillboard(npc, isFriendly)
     local gui = Instance.new("BillboardGui")
     gui.Name = "BillboardGui"
     gui.Adornee = npc:FindFirstChild("Head")
-    gui.Size = UDim2.new(0, 200, 0, 140)
+    gui.Size = UDim2.new(0, 200, 0, 250)
     gui.StudsOffset = Vector3.new(0, 3, 0)
     gui.AlwaysOnTop = true
     gui.Parent = npc
 
-    local labels = {
-        { name = "healthLabel", color = Color3.fromRGB(255, 255, 255), posY = 0 },
-        { name = "waitLabel", color = Color3.fromRGB(0, 170, 255), posY = 0.2 },
-        { name = "rangeLabel", color = Color3.fromRGB(255, 255, 0), posY = 0.4 },
-        { name = "damageLabel", color = Color3.fromRGB(255, 165, 0), posY = 0.6 },
-        { name = "walkSpeedLabel", color = Color3.fromRGB(0, 255, 255), posY = 0.8 },
-        { name = "threatLevelLabel", color = Color3.fromRGB(255, 0, 0), posY = 1.0 }
-    }
+    local fields = {"healthLabel", "waitLabel", "rangeLabel", "damageLabel", "walkSpeedLabel", "resistanceLabel", "armorLabel", "attackRateLabel", "areaAttackLabel", "antiTraitLabel", "dpsLabel", "threatLevelLabel"}
 
-    for _, labelData in ipairs(labels) do
+    for i, name in ipairs(fields) do
         local label = Instance.new("TextLabel", gui)
-        label.Size = UDim2.new(1, 0, 0.2, 0)
-        label.Position = UDim2.new(0, 0, labelData.posY, 0)
+        label.Size = UDim2.new(1, 0, 0.08, 0)
+        label.Position = UDim2.new(0, 0, (i-1)*0.08, 0)
         label.BackgroundTransparency = 1
-        label.TextColor3 = labelData.color
+        label.TextColor3 = Color3.fromRGB(255, 255, 255)
         label.Font = Enum.Font.SourceSansBold
         label.TextScaled = true
-        label.Name = labelData.name
+        label.Name = name
     end
 
     RunService.RenderStepped:Connect(function()
         local humanoid = npc:FindFirstChild("Humanoid")
         if humanoid then
-            local healthLabel = gui:FindFirstChild("healthLabel")
-            local waitLabel = gui:FindFirstChild("waitLabel")
-            local rangeLabel = gui:FindFirstChild("rangeLabel")
-            local damageLabel = gui:FindFirstChild("damageLabel")
-            local walkSpeedLabel = gui:FindFirstChild("walkSpeedLabel")
-            local threatLevelLabel = gui:FindFirstChild("threatLevelLabel")
+            local function getAttr(name)
+                return npc:GetAttribute(name)
+            end
 
             local health = humanoid.Health
-            local waitToMove = npc:GetAttribute("WaitToMove") or 0
-            local range = npc:GetAttribute("Range")
-            local damage = npc:GetAttribute("Damage")
+            local waitToMove = getAttr("WaitToMove") or 0
+            local range = getAttr("Range")
+            local damage = getAttr("Damage")
             local walkSpeed = humanoid.WalkSpeed
+            local resistance = getAttr("Resistance")
+            local armor = getAttr("Armor")
+            local attackRate = getAttr("AttackRate") or 1
+            local areaAttack = getAttr("AreaAttack")
+            local antiTrait = getAttr("AntiTrait")
+            local dps = (damage or 0) * attackRate
 
-            local healthW, rangeW, damageW, speedW = 0.3, 0.2, 0.3, 0.2
-            local threatLevel = 0
-            if health ~= math.huge then threatLevel += health * healthW end
-            if range and range ~= math.huge then threatLevel += range * rangeW end
-            if damage and damage ~= math.huge then threatLevel += damage * damageW end
-            if walkSpeed ~= math.huge then threatLevel += walkSpeed * speedW end
+            local function setField(name, text)
+                local label = gui:FindFirstChild(name)
+                if label and showFields[name:gsub("Label", "")] then
+                    label.Text = text
+                    label.Visible = true
+                elseif label then
+                    label.Visible = false
+                end
+            end
 
-            healthLabel.Text = npc.Name .. " HP: " .. string.format("%.1f", health)
-            waitLabel.Text = "Wait: " .. string.format("%.1f", waitToMove)
-            rangeLabel.Text = "Range: " .. (range and string.format("%.1f", range) or "N/A")
-            damageLabel.Text = "Damage: " .. (damage and string.format("%.1f", damage) or "N/A")
-            walkSpeedLabel.Text = "WalkSpeed: " .. string.format("%.1f", walkSpeed)
-            threatLevelLabel.Text = "Threat Level: " .. string.format("%.1f", threatLevel)
-
-            local mode = isFriendly and friendlyModeBtn.Text or enemyModeBtn.Text
-            if mode == "自动" then
-                healthLabel.TextColor3 = isFriendly and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 255, 255)
+            setField("healthLabel", npc.Name .. " HP: " .. formatNumber(health))
+            setField("waitLabel", "Wait: " .. formatNumber(waitToMove))
+            setField("rangeLabel", "Range: " .. (range and formatNumber(range) or "N/A"))
+            setField("damageLabel", "Damage: " .. (damage and formatNumber(damage) or "N/A"))
+            setField("walkSpeedLabel", "WalkSpeed: " .. formatNumber(walkSpeed))
+            setField("resistanceLabel", "Resistance: " .. (resistance and formatNumber(resistance) or "N/A"))
+            setField("armorLabel", "Armor: " .. (armor and formatNumber(armor) or "N/A"))
+            setField("attackRateLabel", "AttackRate: " .. formatNumber(attackRate))
+            if areaAttack then
+                setField("areaAttackLabel", "AOE")
             else
-                local r = tonumber((isFriendly and friendlyR.Text or enemyR.Text)) or 255
-                local g = tonumber((isFriendly and friendlyG.Text or enemyG.Text)) or 255
-                local b = tonumber((isFriendly and friendlyB.Text or enemyB.Text)) or 255
-                healthLabel.TextColor3 = Color3.fromRGB(r, g, b)
+                setField("areaAttackLabel", "")
+            end
+            setField("antiTraitLabel", "AntiTrait: " .. (antiTrait or "None"))
+            setField("dpsLabel", "DPS: " .. formatNumber(dps))
+
+            -- 威胁值
+            local threat = 0
+            if health ~= math.huge then threat += health * 0.3 end
+            if range and range ~= math.huge then threat += range * 0.2 end
+            if damage and damage ~= math.huge then threat += damage * 0.3 end
+            if walkSpeed ~= math.huge then threat += walkSpeed * 0.2 end
+
+            local threatLabel = gui:FindFirstChild("threatLevelLabel")
+            if threatLabel then
+                threatLabel.Text = "Threat: " .. formatNumber(threat)
             end
         end
     end)
@@ -202,17 +243,17 @@ local function updateTotalThreat()
             local damage = npc:GetAttribute("Damage")
             local walkSpeed = humanoid.WalkSpeed
 
-            local healthW, rangeW, damageW, speedW = 0.3, 0.2, 0.3, 0.2
             local threat = 0
-            if health ~= math.huge then threat += health * healthW end
-            if range and range ~= math.huge then threat += range * rangeW end
-            if damage and damage ~= math.huge then threat += damage * damageW end
-            if walkSpeed ~= math.huge then threat += walkSpeed * speedW end
+            if health ~= math.huge then threat += health * 0.3 end
+            if range and range ~= math.huge then threat += range * 0.2 end
+            if damage and damage ~= math.huge then threat += damage * 0.3 end
+            if walkSpeed ~= math.huge then threat += walkSpeed * 0.2 end
+
             sum += threat * 0.7
         end
     end
 
-    totalThreatLabel.Text = "关卡总威胁值: " .. string.format("%.1f", sum)
+    totalThreatLabel.Text = "关卡总威胁值: " .. math.floor(sum)
     if sum > 6000 then
         totalThreatLabel.TextColor3 = Color3.fromRGB(180, 30, 30)
     elseif sum > 4000 then
@@ -224,7 +265,7 @@ local function updateTotalThreat()
     end
 end
 
--- 初始化循环
+-- 初始化
 RunService.RenderStepped:Connect(updateTotalThreat)
 
 task.spawn(function()
