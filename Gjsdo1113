@@ -1,0 +1,31 @@
+local Players = game:WaitForChild("Players")
+local LP = Players.LocalPlayer
+local ScreenGui = LP.PlayerGui:FindFirstChild("NPCHealthUI")
+
+
+
+local colorPanel = ScreenGui.Frame
+colorPanel.Size = UDim2.new(0, 250, 0, 250)
+colorPanel.Position = UDim2.new(0.01, 0, 0.18, 0)
+colorPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+
+local toggleButton = Instance.new("TextButton", ScreenGui)
+toggleButton.Size = UDim2.new(0, 200, 0, 30)
+toggleButton.Position = UDim2.new(0.5, -100, 0, 10)
+toggleButton.Text = "隐藏面板"
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+
+colorPanel.Visible = true
+
+
+toggleButton.MouseButton1Click:Connect(function()
+    if colorPanel.Visible then
+        colorPanel.Visible = false
+        toggleButton.Text = "显示面板"
+    else
+        colorPanel.Visible = true
+        toggleButton.Text = "隐藏面板"
+    end
+end)
