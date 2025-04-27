@@ -206,7 +206,7 @@ local function createBillboard(npc, isFriendly)
         local attackRate = npc:GetAttribute("AttackRate")
         local areaAttack = npc:GetAttribute("AreaAttack")
         local antiTrait = npc:GetAttribute("AntiTrait") or "None"
-        local dps = (damage or 0)*(attackRate or 0)
+        local dps = (damage or 0) / (attackRate or 0)
 
         local infoList = {}
         table.insert(infoList, npc.Name .. " HP: " .. formatNumber(health))
