@@ -11,7 +11,7 @@ colorPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 
 local toggleButton = Instance.new("TextButton", ScreenGui)
 toggleButton.Size = UDim2.new(0, 200, 0, 30)
-toggleButton.Position = UDim2.new(0.5, -100, 0, 10)
+toggleButton.Position = UDim2.new(0.5, -100, 0, -30)
 toggleButton.Text = "隐藏面板"
 toggleButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
