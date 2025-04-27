@@ -85,9 +85,9 @@ local enemyR = createRGBInput(controlPanel, 10, 80, "R")
 local enemyG = createRGBInput(controlPanel, 70, 80, "G")
 local enemyB = createRGBInput(controlPanel, 130, 80, "B")
 
-local friendlyR = createRGBInput(controlPanel, 140, 80, "R")
-local friendlyG = createRGBInput(controlPanel, 200, 80, "G")
-local friendlyB = createRGBInput(controlPanel, 260, 80, "B")
+local friendlyR = createRGBInput(controlPanel, 170, 80, "R")
+local friendlyG = createRGBInput(controlPanel, 230, 80, "G")
+local friendlyB = createRGBInput(controlPanel, 290, 80, "B")
 
 -- 精度选择按钮
 local precisionMode = 0 -- 0:整数，1:保留1位，2:保留2位
@@ -240,28 +240,6 @@ local function createBillboard(npc, isFriendly)
         end
     end)
 end
-local colorPanel = ScreenGui.Frame
-
-
-local toggleButton = Instance.new("TextButton", colorPanel)
-toggleButton.Size = UDim2.new(0, 200, 0, 30)
-toggleButton.Position = UDim2.new(0.5, -100, 0, 10)  -- 按钮位置，居中显示
-toggleButton.Text = "隐藏面板"
-toggleButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-
--- 按钮点击事件：切换 colorPanel 的显示状态
-toggleButton.MouseButton1Click:Connect(function()
-    if colorPanel.Visible then
-        colorPanel.Visible = false
-        toggleButton.Text = "显示面板"  -- 更新按钮文本
-    else
-        colorPanel.Visible = true
-        toggleButton.Text = "隐藏面板"  -- 更新按钮文本
-    end
-end)
-
-
 
 -- 总威胁值刷新
 local function updateTotalThreat()
