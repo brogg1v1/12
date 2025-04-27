@@ -240,24 +240,45 @@ local function createBillboard(npc, isFriendly)
         end
     end)
 end
--- 控制面板关闭按钮
-local closeControlPanelButton = Instance.new("TextButton", colorPanel)
-closeControlPanelButton.Size = UDim2.new(0, 100, 0, 30)
-closeControlPanelButton.Position = UDim2.new(0, 10, 0, 220)
-closeControlPanelButton.Text = "关闭面板"
-closeControlPanelButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-closeControlPanelButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+-- 主要代码部分
 
--- 点击关闭按钮时，隐藏面板
--- 关闭控制面板按钮的逻辑改动
+-- 控制面板
+local controlToggle = Instance.new("TextButton", ScreenGui)
+controlToggle.Size = UDim2.new(0, 100, 0, 25)
+controlToggle.Position = UDim2.new(0.01, 0, 0.12, 0)
+controlToggle.Text = "颜色控制面板"
+controlToggle.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+controlToggle.TextColor3 = Color3.new(1, 1, 1)
+
+local colorPanel = Instance.new("Frame", ScreenGui)
+colorPanel.Size = UDim2.new(0, 250, 0, 250)
+colorPanel.Position = UDim2.new(0.01, 0, 0.18, 0)
+colorPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+colorPanel.Visible = false  -- 默认隐藏面板
+
+-- 控制面板开关逻辑
+controlToggle.MouseButton1Click:Connect(function()
+    colorPanel.Visible = not colorPanel.Visible
+end)
+
+-- 关闭控制面板按钮
+local closeButton = Instance.new("TextButton", colorPanel)
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -30, 0, 0)
+closeButton.Text = "X"
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.BorderSizePixel = 0
+
+-- 关闭按钮点击事件，隐藏面板
 closeButton.MouseButton1Click:Connect(function()
     colorPanel.Visible = false
 end)
 
--- 控制面板切换的按钮（再次点击显示面板）
-controlToggle.MouseButton1Click:Connect(function()
-    colorPanel.Visible = not colorPanel.Visible
-end)
+-- 面板内容（按钮、输入框等）代码...
+
+-- 继续你原本的UI设置
 
 
 -- 总威胁值刷新
