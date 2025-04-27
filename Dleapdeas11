@@ -240,8 +240,9 @@ local function createBillboard(npc, isFriendly)
         end
     end)
 end
--- 假设已有的colorPanel Frame已经存在
--- 在colorPanel框架内添加一个切换显示/隐藏的按钮
+local colorPanel = ScreenGui.Frame
+
+
 local toggleButton = Instance.new("TextButton", colorPanel)
 toggleButton.Size = UDim2.new(0, 200, 0, 30)
 toggleButton.Position = UDim2.new(0.5, -100, 0, 10)  -- 按钮位置，居中显示
@@ -249,10 +250,7 @@ toggleButton.Text = "隐藏面板"
 toggleButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 
--- 假设colorPanel最初是可见的
-colorPanel.Visible = true
-
--- 按钮点击事件：切换colorPanel的显示状态
+-- 按钮点击事件：切换 colorPanel 的显示状态
 toggleButton.MouseButton1Click:Connect(function()
     if colorPanel.Visible then
         colorPanel.Visible = false
@@ -262,6 +260,7 @@ toggleButton.MouseButton1Click:Connect(function()
         toggleButton.Text = "隐藏面板"  -- 更新按钮文本
     end
 end)
+
 
 
 -- 总威胁值刷新
