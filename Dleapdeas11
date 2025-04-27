@@ -159,7 +159,7 @@ local function createBillboard(npc, isFriendly)
             local threatLevelLabel = gui:FindFirstChild("threatLevelLabel")
 
             local health = humanoid.Health
-            local waitToMove = npc:GetAttribute("WaitToMove") or 0.5
+            local waitToMove = npc:GetAttribute("WaitToMove") or 0
             local range = npc:GetAttribute("Range")
             local damage = npc:GetAttribute("Damage")
             local walkSpeed = humanoid.WalkSpeed
