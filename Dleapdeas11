@@ -240,6 +240,25 @@ local function createBillboard(npc, isFriendly)
         end
     end)
 end
+-- 控制面板关闭按钮
+local closeControlPanelButton = Instance.new("TextButton", colorPanel)
+closeControlPanelButton.Size = UDim2.new(0, 100, 0, 30)
+closeControlPanelButton.Position = UDim2.new(0, 10, 0, 220)
+closeControlPanelButton.Text = "关闭面板"
+closeControlPanelButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+closeControlPanelButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- 点击关闭按钮时，隐藏面板
+-- 关闭控制面板按钮的逻辑改动
+closeButton.MouseButton1Click:Connect(function()
+    colorPanel.Visible = false
+end)
+
+-- 控制面板切换的按钮（再次点击显示面板）
+controlToggle.MouseButton1Click:Connect(function()
+    colorPanel.Visible = not colorPanel.Visible
+end)
+
 
 -- 总威胁值刷新
 local function updateTotalThreat()
