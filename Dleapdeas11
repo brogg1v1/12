@@ -84,7 +84,6 @@ end
 local enemyR = createRGBInput(controlPanel, 10, 80, "R")
 local enemyG = createRGBInput(controlPanel, 70, 80, "G")
 local enemyB = createRGBInput(controlPanel, 130, 80, "B")
-
 local friendlyR = createRGBInput(controlPanel, 170, 80, "R")
 local friendlyG = createRGBInput(controlPanel, 230, 80, "G")
 local friendlyB = createRGBInput(controlPanel, 290, 80, "B")
@@ -167,6 +166,10 @@ end
 
 -- 创建血条 BillboardGui
 local function createBillboard(npc, isFriendly)
+    -- 等待 Humanoid 出现
+    if not npc:FindFirstChild("Humanoid") then
+        npc.ChildAdded:Wait()
+    end
     if npc:FindFirstChild("BillboardGui") then return end
 
     local gui = Instance.new("BillboardGui")
@@ -193,9 +196,6 @@ local function createBillboard(npc, isFriendly)
         local humanoid = npc:FindFirstChild("Humanoid")
         if not humanoid then return end
 
-        local head = gui.Adornee
-        if not head then return end
-
         local health = humanoid.Health
         local waitToMove = npc:GetAttribute("WaitToMove") or 0
         local range = npc:GetAttribute("Range")
@@ -206,7 +206,7 @@ local function createBillboard(npc, isFriendly)
         local attackRate = npc:GetAttribute("AttackRate")
         local areaAttack = npc:GetAttribute("AreaAttack")
         local antiTrait = npc:GetAttribute("AntiTrait") or "None"
-        local dps = (damage or 0) / (attackRate or 0)
+        local dps = (damage or 0) / (attackRate or 1)
 
         local infoList = {}
         table.insert(infoList, npc.Name .. " HP: " .. formatNumber(health))
