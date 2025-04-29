@@ -1,4 +1,3 @@
--- 全局服务与玩家获取
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
@@ -24,7 +23,7 @@ totalThreatLabel.Text = ""
 
 -- 控制面板（可拖动）
 local controlPanel = Instance.new("Frame", ScreenGui)
-controlPanel.Size = UDim2.new(0, 400, 0, 400)
+controlPanel.Size = UDim2.new(0, 400, 0, 420)
 controlPanel.Position = UDim2.new(0.01, 0, 0.05, 0)
 controlPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 controlPanel.Visible = true
@@ -89,7 +88,7 @@ local friendlyG = createRGBInput(controlPanel, 230, 80, "G")
 local friendlyB = createRGBInput(controlPanel, 290, 80, "B")
 
 -- 精度选择按钮
-local precisionMode = 0 -- 0:整数，1:保留1位，2:保留2位
+local precisionMode = 0
 local precisionLabel = Instance.new("TextLabel", controlPanel)
 precisionLabel.Position = UDim2.new(0, 10, 0, 120)
 precisionLabel.Size = UDim2.new(0, 180, 0, 25)
@@ -131,6 +130,7 @@ local showProperties = {
     AreaAttack = true,
     AntiTrait = true,
     DPS = true,
+    WindUp = true,
 }
 
 local function createCheckbox(name, posY)
@@ -148,7 +148,7 @@ local function createCheckbox(name, posY)
     end)
 end
 
-local propertyNames = {"Wait","Range","Damage","WalkSpeed","Resistance","Armor","AttackRate","AreaAttack","AntiTrait","DPS"}
+local propertyNames = {"Wait","Range","Damage","WalkSpeed","Resistance","Armor","AttackRate","AreaAttack","AntiTrait","DPS","WindUp"}
 for i, name in ipairs(propertyNames) do
     createCheckbox(name, 190 + (i-1)*22)
 end
@@ -166,7 +166,6 @@ end
 
 -- 创建血条 BillboardGui
 local function createBillboard(npc, isFriendly)
-    -- 等待 Humanoid 出现
     if not npc:FindFirstChild("Humanoid") then
         npc.ChildAdded:Wait()
     end
@@ -206,6 +205,7 @@ local function createBillboard(npc, isFriendly)
         local attackRate = npc:GetAttribute("AttackRate")
         local areaAttack = npc:GetAttribute("AreaAttack")
         local antiTrait = npc:GetAttribute("AntiTrait") or "None"
+        local windUp = npc:GetAttribute("WindUp")
         local dps = (damage or 0) / (attackRate or 1)
 
         local infoList = {}
@@ -220,6 +220,7 @@ local function createBillboard(npc, isFriendly)
         if showProperties.AreaAttack and areaAttack then table.insert(infoList, "AOE") end
         if showProperties.AntiTrait then table.insert(infoList, "AntiTrait: " .. tostring(antiTrait)) end
         if showProperties.DPS then table.insert(infoList, "DPS: " .. formatNumber(dps)) end
+        if showProperties.WindUp and windUp then table.insert(infoList, "WindUp: " .. formatNumber(windUp)) end
 
         for i = 1, 10 do
             local label = gui:FindFirstChild("Label"..i)
