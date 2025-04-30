@@ -163,7 +163,7 @@ local function createBillboard(npc, isFriendly)
     gui.Name = "BillboardGui"
     gui.Adornee = npc:FindFirstChild("Head")
     gui.Size = UDim2.new(0, 240, 0, 300) -- 加高显示更多文字
-    gui.StudsOffset = Vector3.new(0, 3, 0)
+    gui.StudsOffset = Vector3.new(0, 5, 0)
     gui.AlwaysOnTop = true
     gui.Parent = npc
 
