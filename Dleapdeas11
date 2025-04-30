@@ -195,6 +195,7 @@ local function createBillboard(npc, isFriendly)
 
         local infoList = {}
         table.insert(infoList, npc.Name .. " HP: " .. formatNumber(health))
+        if showProperties.WindUp then table.insert(infoList, "WindUp: " .. formatNumber(windUp or 0)) end
         if showProperties.Wait then table.insert(infoList, "Wait: " .. formatNumber(waitToMove)) end
         if showProperties.Range then table.insert(infoList, "Range: " .. (range and formatNumber(range) or "N/A")) end
         if showProperties.Damage then table.insert(infoList, "Damage: " .. (damage and formatNumber(damage) or "N/A")) end
@@ -205,7 +206,6 @@ local function createBillboard(npc, isFriendly)
         if showProperties.AreaAttack and areaAttack then table.insert(infoList, "AOE") end
         if showProperties.AntiTrait then table.insert(infoList, "AntiTrait: " .. tostring(antiTrait)) end
         if showProperties.DPS then table.insert(infoList, "DPS: " .. formatNumber(dps)) end
-        if showProperties.WindUp then table.insert(infoList, "WindUp: " .. formatNumber(windUp or 0)) end
 
         for i = 1, 10 do
             local label = gui:FindFirstChild("Label"..i)
