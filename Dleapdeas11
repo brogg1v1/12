@@ -164,7 +164,7 @@ local function createBillboard(npc, isFriendly)
     gui.StudsOffset = Vector3.new(0, 3, 0)
     gui.AlwaysOnTop = true
 
-    for i = 1, 10 do
+    for i = 1, 12 do
         local label = Instance.new("TextLabel", gui)
         label.Name = "Label" .. i
         label.Size = UDim2.new(1, 0, 0.1, 0)
@@ -207,7 +207,7 @@ local function createBillboard(npc, isFriendly)
         if showProperties.AntiTrait then table.insert(infoList, "AntiTrait: " .. tostring(antiTrait)) end
         if showProperties.DPS then table.insert(infoList, "DPS: " .. formatNumber(dps)) end
 
-        for i = 1, 10 do
+        for i = 1, 12 do
             local label = gui:FindFirstChild("Label"..i)
             if label then
                 label.Text = infoList[i] or ""
