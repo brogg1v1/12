@@ -152,23 +152,26 @@ local function formatNumber(num)
     end
 end
 
--- 创建血条
+-- 创建血条 BillboardGui
 local function createBillboard(npc, isFriendly)
-    if not npc:FindFirstChild("Humanoid") then return end
+    if not npc:FindFirstChild("Humanoid") then
+        npc.ChildAdded:Wait()
+    end
     if npc:FindFirstChild("BillboardGui") then return end
 
-    local gui = Instance.new("BillboardGui", npc)
+    local gui = Instance.new("BillboardGui")
     gui.Name = "BillboardGui"
     gui.Adornee = npc:FindFirstChild("Head")
-    gui.Size = UDim2.new(0, 220, 0, 180)
+    gui.Size = UDim2.new(0, 220, 0, 220) -- ↑调整高度
     gui.StudsOffset = Vector3.new(0, 3, 0)
     gui.AlwaysOnTop = true
+    gui.Parent = npc
 
     for i = 1, 12 do
         local label = Instance.new("TextLabel", gui)
         label.Name = "Label" .. i
-        label.Size = UDim2.new(1, 0, 0.1, 0)
-        label.Position = UDim2.new(0, 0, (i-1)*0.1, 0)
+        label.Size = UDim2.new(1, 0, 0.083, 0)
+        label.Position = UDim2.new(0, 0, (i-1)*0.083, 0)
         label.BackgroundTransparency = 1
         label.TextColor3 = Color3.new(1,1,1)
         label.Font = Enum.Font.SourceSansBold
@@ -188,14 +191,13 @@ local function createBillboard(npc, isFriendly)
         local resistance = npc:GetAttribute("Resistance")
         local armor = npc:GetAttribute("Armor")
         local attackRate = npc:GetAttribute("AttackRate")
-        local windUp = npc:GetAttribute("WindUp")
         local areaAttack = npc:GetAttribute("AreaAttack")
         local antiTrait = npc:GetAttribute("AntiTrait") or "None"
         local dps = (damage or 0) / (attackRate or 1)
+        local windUp = npc:GetAttribute("WindUp")
 
         local infoList = {}
         table.insert(infoList, npc.Name .. " HP: " .. formatNumber(health))
-        if showProperties.WindUp then table.insert(infoList, "WindUp: " .. formatNumber(windUp or 0)) end
         if showProperties.Wait then table.insert(infoList, "Wait: " .. formatNumber(waitToMove)) end
         if showProperties.Range then table.insert(infoList, "Range: " .. (range and formatNumber(range) or "N/A")) end
         if showProperties.Damage then table.insert(infoList, "Damage: " .. (damage and formatNumber(damage) or "N/A")) end
@@ -206,6 +208,7 @@ local function createBillboard(npc, isFriendly)
         if showProperties.AreaAttack and areaAttack then table.insert(infoList, "AOE") end
         if showProperties.AntiTrait then table.insert(infoList, "AntiTrait: " .. tostring(antiTrait)) end
         if showProperties.DPS then table.insert(infoList, "DPS: " .. formatNumber(dps)) end
+        if showProperties.DPS and windUp then table.insert(infoList, "WindUp: " .. formatNumber(windUp)) end
 
         for i = 1, 12 do
             local label = gui:FindFirstChild("Label"..i)
@@ -226,6 +229,7 @@ local function createBillboard(npc, isFriendly)
         end
     end)
 end
+
 
 -- 总威胁值刷新
 local function updateTotalThreat()
