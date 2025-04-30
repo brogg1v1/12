@@ -191,56 +191,56 @@ local function createBillboard(npc, isFriendly)
     end
 
     RunService.RenderStepped:Connect(function()
-        if npc.Parent == nil then return end
-        local humanoid = npc:FindFirstChild("Humanoid")
-        if not humanoid then return end
+    if npc.Parent == nil then return end
+    local humanoid = npc:FindFirstChild("Humanoid")
+    if not humanoid then return end
 
-        local health = humanoid.Health
-        local waitToMove = npc:GetAttribute("WaitToMove") or 0
-        local range = npc:GetAttribute("Range")
-        local damage = npc:GetAttribute("Damage")
-        local walkSpeed = humanoid.WalkSpeed
-        local resistance = npc:GetAttribute("Resistance")
-        local armor = npc:GetAttribute("Armor")
-        local attackRate = npc:GetAttribute("AttackRate")
-        local areaAttack = npc:GetAttribute("AreaAttack")
-        local antiTrait = npc:GetAttribute("AntiTrait") or "None"
-        local windUp = npc:GetAttribute("WindUp")
-        local dps = (damage or 0) / (attackRate or 1)
+    local health = humanoid.Health
+    local waitToMove = npc:GetAttribute("WaitToMove") or 0
+    local range = npc:GetAttribute("Range")
+    local damage = npc:GetAttribute("Damage")
+    local walkSpeed = humanoid.WalkSpeed
+    local resistance = npc:GetAttribute("Resistance")
+    local armor = npc:GetAttribute("Armor")
+    local attackRate = npc:GetAttribute("AttackRate")
+    local areaAttack = npc:GetAttribute("AreaAttack")
+    local antiTrait = npc:GetAttribute("AntiTrait") or "None"
+    local windUp = npc:GetAttribute("WindUp") or nil
+    local dps = (damage or 0) / (attackRate or 1)
 
-        local infoList = {}
-        table.insert(infoList, npc.Name .. " HP: " .. formatNumber(health))
-        if showProperties.Wait then table.insert(infoList, "Wait: " .. formatNumber(waitToMove)) end
-        if showProperties.Range then table.insert(infoList, "Range: " .. (range and formatNumber(range) or "N/A")) end
-        if showProperties.Damage then table.insert(infoList, "Damage: " .. (damage and formatNumber(damage) or "N/A")) end
-        if showProperties.WalkSpeed then table.insert(infoList, "WalkSpeed: " .. formatNumber(walkSpeed)) end
-        if showProperties.Resistance then table.insert(infoList, "Resistance: " .. (resistance and formatNumber(resistance) or "N/A")) end
-        if showProperties.Armor then table.insert(infoList, "Armor: " .. (armor and formatNumber(armor) or "N/A")) end
-        if showProperties.AttackRate then table.insert(infoList, "AttackRate: " .. (attackRate and formatNumber(attackRate) or "N/A")) end
-        if showProperties.AreaAttack and areaAttack then table.insert(infoList, "AOE") end
-        if showProperties.AntiTrait then table.insert(infoList, "AntiTrait: " .. tostring(antiTrait)) end
-        if showProperties.DPS then table.insert(infoList, "DPS: " .. formatNumber(dps)) end
-        if showProperties.WindUp and windUp then table.insert(infoList, "WindUp: " .. formatNumber(windUp)) end
+    local infoList = {}
+    table.insert(infoList, npc.Name .. " HP: " .. formatNumber(health))
+    if showProperties.Wait then table.insert(infoList, "Wait: " .. formatNumber(waitToMove)) end
+    if showProperties.Range then table.insert(infoList, "Range: " .. (range and formatNumber(range) or "N/A")) end
+    if showProperties.Damage then table.insert(infoList, "Damage: " .. (damage and formatNumber(damage) or "N/A")) end
+    if showProperties.WalkSpeed then table.insert(infoList, "WalkSpeed: " .. formatNumber(walkSpeed)) end
+    if showProperties.Resistance then table.insert(infoList, "Resistance: " .. (resistance and formatNumber(resistance) or "N/A")) end
+    if showProperties.Armor then table.insert(infoList, "Armor: " .. (armor and formatNumber(armor) or "N/A")) end
+    if showProperties.AttackRate then table.insert(infoList, "AttackRate: " .. (attackRate and formatNumber(attackRate) or "N/A")) end
+    if showProperties.AreaAttack and areaAttack then table.insert(infoList, "AOE") end
+    if showProperties.AntiTrait then table.insert(infoList, "AntiTrait: " .. tostring(antiTrait)) end
+    if showProperties.DPS then table.insert(infoList, "DPS: " .. formatNumber(dps)) end
+    if showProperties.WindUp and windUp then table.insert(infoList, "WindUp: " .. formatNumber(windUp)) end
 
-        for i = 1, 10 do
-            local label = gui:FindFirstChild("Label"..i)
-            if label then
-                label.Text = infoList[i] or ""
-                if i == 1 then
-                    local mode = isFriendly and friendlyModeBtn.Text or enemyModeBtn.Text
-                    if mode:find("自动") then
-                        label.TextColor3 = isFriendly and Color3.fromRGB(0,255,0) or Color3.fromRGB(255,255,255)
-                    else
-                        local r = tonumber((isFriendly and friendlyR.Text or enemyR.Text)) or 255
-                        local g = tonumber((isFriendly and friendlyG.Text or enemyG.Text)) or 255
-                        local b = tonumber((isFriendly and friendlyB.Text or enemyB.Text)) or 255
-                        label.TextColor3 = Color3.fromRGB(r, g, b)
-                    end
+    for i = 1, 10 do
+        local label = gui:FindFirstChild("Label"..i)
+        if label then
+            label.Text = infoList[i] or ""
+            if i == 1 then
+                local mode = isFriendly and friendlyModeBtn.Text or enemyModeBtn.Text
+                if mode:find("自动") then
+                    label.TextColor3 = isFriendly and Color3.fromRGB(0,255,0) or Color3.fromRGB(255,255,255)
+                else
+                    local r = tonumber((isFriendly and friendlyR.Text or enemyR.Text)) or 255
+                    local g = tonumber((isFriendly and friendlyG.Text or enemyG.Text)) or 255
+                    local b = tonumber((isFriendly and friendlyB.Text or enemyB.Text)) or 255
+                    label.TextColor3 = Color3.fromRGB(r, g, b)
                 end
             end
         end
-    end)
-end
+    end
+end)
+
 
 -- 总威胁值刷新
 local function updateTotalThreat()
