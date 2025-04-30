@@ -1,3 +1,4 @@
+-- 全局服务与玩家获取
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
@@ -38,7 +39,7 @@ controlTitle.Font = Enum.Font.SourceSansBold
 controlTitle.TextSize = 20
 controlTitle.TextColor3 = Color3.new(1, 1, 1)
 
--- 模式切换按钮（颜色控制）
+-- 模式切换按钮
 local enemyModeBtn = Instance.new("TextButton", controlPanel)
 enemyModeBtn.Position = UDim2.new(0, 10, 0, 40)
 enemyModeBtn.Size = UDim2.new(0, 120, 0, 30)
@@ -87,7 +88,7 @@ local friendlyR = createRGBInput(controlPanel, 170, 80, "R")
 local friendlyG = createRGBInput(controlPanel, 230, 80, "G")
 local friendlyB = createRGBInput(controlPanel, 290, 80, "B")
 
--- 精度选择按钮
+-- 精度切换
 local precisionMode = 0
 local precisionLabel = Instance.new("TextLabel", controlPanel)
 precisionLabel.Position = UDim2.new(0, 10, 0, 120)
@@ -109,29 +110,17 @@ precisionBtn.Text = "切换精度"
 
 precisionBtn.MouseButton1Click:Connect(function()
     precisionMode = (precisionMode + 1) % 3
-    if precisionMode == 0 then
-        precisionLabel.Text = "当前精度: 整数"
-    elseif precisionMode == 1 then
-        precisionLabel.Text = "当前精度: 保留1位"
-    else
-        precisionLabel.Text = "当前精度: 保留2位"
-    end
+    precisionLabel.Text = "当前精度: " .. ({"整数", "保留1位", "保留2位"})[precisionMode+1]
 end)
 
--- 属性显示勾选框
+-- 属性显示控制
 local showProperties = {
-    Wait = true,
-    Range = true,
-    Damage = true,
-    WalkSpeed = true,
-    Resistance = true,
-    Armor = true,
-    AttackRate = true,
-    AreaAttack = true,
-    AntiTrait = true,
-    DPS = true,
-    WindUp = true,
+    Wait = true, Range = true, Damage = true, WalkSpeed = true,
+    Resistance = true, Armor = true, AttackRate = true, AreaAttack = true,
+    AntiTrait = true, DPS = true, WindUp = true
 }
+
+local propertyNames = {"Wait","Range","Damage","WalkSpeed","Resistance","Armor","AttackRate","AreaAttack","AntiTrait","DPS","WindUp"}
 
 local function createCheckbox(name, posY)
     local button = Instance.new("TextButton", controlPanel)
@@ -148,7 +137,6 @@ local function createCheckbox(name, posY)
     end)
 end
 
-local propertyNames = {"Wait","Range","Damage","WalkSpeed","Resistance","Armor","AttackRate","AreaAttack","AntiTrait","DPS","WindUp"}
 for i, name in ipairs(propertyNames) do
     createCheckbox(name, 190 + (i-1)*22)
 end
@@ -164,20 +152,17 @@ local function formatNumber(num)
     end
 end
 
--- 创建血条 BillboardGui
+-- 创建血条
 local function createBillboard(npc, isFriendly)
-    if not npc:FindFirstChild("Humanoid") then
-        npc.ChildAdded:Wait()
-    end
+    if not npc:FindFirstChild("Humanoid") then return end
     if npc:FindFirstChild("BillboardGui") then return end
 
-    local gui = Instance.new("BillboardGui")
+    local gui = Instance.new("BillboardGui", npc)
     gui.Name = "BillboardGui"
     gui.Adornee = npc:FindFirstChild("Head")
     gui.Size = UDim2.new(0, 220, 0, 180)
     gui.StudsOffset = Vector3.new(0, 3, 0)
     gui.AlwaysOnTop = true
-    gui.Parent = npc
 
     for i = 1, 10 do
         local label = Instance.new("TextLabel", gui)
@@ -191,56 +176,56 @@ local function createBillboard(npc, isFriendly)
     end
 
     RunService.RenderStepped:Connect(function()
-    if npc.Parent == nil then return end
-    local humanoid = npc:FindFirstChild("Humanoid")
-    if not humanoid then return end
+        if npc.Parent == nil then return end
+        local humanoid = npc:FindFirstChild("Humanoid")
+        if not humanoid then return end
 
-    local health = humanoid.Health
-    local waitToMove = npc:GetAttribute("WaitToMove") or 0
-    local range = npc:GetAttribute("Range")
-    local damage = npc:GetAttribute("Damage")
-    local walkSpeed = humanoid.WalkSpeed
-    local resistance = npc:GetAttribute("Resistance")
-    local armor = npc:GetAttribute("Armor")
-    local attackRate = npc:GetAttribute("AttackRate")
-    local areaAttack = npc:GetAttribute("AreaAttack")
-    local antiTrait = npc:GetAttribute("AntiTrait") or "None"
-    local windUp = npc:GetAttribute("WindUp") or nil
-    local dps = (damage or 0) / (attackRate or 1)
+        local health = humanoid.Health
+        local waitToMove = npc:GetAttribute("WaitToMove") or 0
+        local range = npc:GetAttribute("Range")
+        local damage = npc:GetAttribute("Damage")
+        local walkSpeed = humanoid.WalkSpeed
+        local resistance = npc:GetAttribute("Resistance")
+        local armor = npc:GetAttribute("Armor")
+        local attackRate = npc:GetAttribute("AttackRate")
+        local windUp = npc:GetAttribute("WindUp")
+        local areaAttack = npc:GetAttribute("AreaAttack")
+        local antiTrait = npc:GetAttribute("AntiTrait") or "None"
+        local dps = (damage or 0) / (attackRate or 1)
 
-    local infoList = {}
-    table.insert(infoList, npc.Name .. " HP: " .. formatNumber(health))
-    if showProperties.Wait then table.insert(infoList, "Wait: " .. formatNumber(waitToMove)) end
-    if showProperties.Range then table.insert(infoList, "Range: " .. (range and formatNumber(range) or "N/A")) end
-    if showProperties.Damage then table.insert(infoList, "Damage: " .. (damage and formatNumber(damage) or "N/A")) end
-    if showProperties.WalkSpeed then table.insert(infoList, "WalkSpeed: " .. formatNumber(walkSpeed)) end
-    if showProperties.Resistance then table.insert(infoList, "Resistance: " .. (resistance and formatNumber(resistance) or "N/A")) end
-    if showProperties.Armor then table.insert(infoList, "Armor: " .. (armor and formatNumber(armor) or "N/A")) end
-    if showProperties.AttackRate then table.insert(infoList, "AttackRate: " .. (attackRate and formatNumber(attackRate) or "N/A")) end
-    if showProperties.AreaAttack and areaAttack then table.insert(infoList, "AOE") end
-    if showProperties.AntiTrait then table.insert(infoList, "AntiTrait: " .. tostring(antiTrait)) end
-    if showProperties.DPS then table.insert(infoList, "DPS: " .. formatNumber(dps)) end
-    if showProperties.WindUp and windUp then table.insert(infoList, "WindUp: " .. formatNumber(windUp)) end
+        local infoList = {}
+        table.insert(infoList, npc.Name .. " HP: " .. formatNumber(health))
+        if showProperties.Wait then table.insert(infoList, "Wait: " .. formatNumber(waitToMove)) end
+        if showProperties.Range then table.insert(infoList, "Range: " .. (range and formatNumber(range) or "N/A")) end
+        if showProperties.Damage then table.insert(infoList, "Damage: " .. (damage and formatNumber(damage) or "N/A")) end
+        if showProperties.WalkSpeed then table.insert(infoList, "WalkSpeed: " .. formatNumber(walkSpeed)) end
+        if showProperties.Resistance then table.insert(infoList, "Resistance: " .. (resistance and formatNumber(resistance) or "N/A")) end
+        if showProperties.Armor then table.insert(infoList, "Armor: " .. (armor and formatNumber(armor) or "N/A")) end
+        if showProperties.AttackRate then table.insert(infoList, "AttackRate: " .. (attackRate and formatNumber(attackRate) or "N/A")) end
+        if showProperties.AreaAttack and areaAttack then table.insert(infoList, "AOE") end
+        if showProperties.AntiTrait then table.insert(infoList, "AntiTrait: " .. tostring(antiTrait)) end
+        if showProperties.DPS then table.insert(infoList, "DPS: " .. formatNumber(dps)) end
+        if showProperties.WindUp then table.insert(infoList, "WindUp: " .. formatNumber(windUp or 0)) end
 
-    for i = 1, 10 do
-        local label = gui:FindFirstChild("Label"..i)
-        if label then
-            label.Text = infoList[i] or ""
-            if i == 1 then
-                local mode = isFriendly and friendlyModeBtn.Text or enemyModeBtn.Text
-                if mode:find("自动") then
-                    label.TextColor3 = isFriendly and Color3.fromRGB(0,255,0) or Color3.fromRGB(255,255,255)
-                else
-                    local r = tonumber((isFriendly and friendlyR.Text or enemyR.Text)) or 255
-                    local g = tonumber((isFriendly and friendlyG.Text or enemyG.Text)) or 255
-                    local b = tonumber((isFriendly and friendlyB.Text or enemyB.Text)) or 255
-                    label.TextColor3 = Color3.fromRGB(r, g, b)
+        for i = 1, 10 do
+            local label = gui:FindFirstChild("Label"..i)
+            if label then
+                label.Text = infoList[i] or ""
+                if i == 1 then
+                    local mode = isFriendly and friendlyModeBtn.Text or enemyModeBtn.Text
+                    if mode:find("自动") then
+                        label.TextColor3 = isFriendly and Color3.fromRGB(0,255,0) or Color3.fromRGB(255,255,255)
+                    else
+                        local r = tonumber((isFriendly and friendlyR.Text or enemyR.Text)) or 255
+                        local g = tonumber((isFriendly and friendlyG.Text or enemyG.Text)) or 255
+                        local b = tonumber((isFriendly and friendlyB.Text or enemyB.Text)) or 255
+                        label.TextColor3 = Color3.fromRGB(r, g, b)
+                    end
                 end
             end
         end
-    end
-end)
-
+    end)
+end
 
 -- 总威胁值刷新
 local function updateTotalThreat()
@@ -275,7 +260,7 @@ local function updateTotalThreat()
     end
 end
 
--- 初始化循环
+-- 启动循环
 RunService.RenderStepped:Connect(updateTotalThreat)
 
 task.spawn(function()
