@@ -1,0 +1,76 @@
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+-- Services
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local screenGui = Instance.new("ScreenGui", player.PlayerGui)
+
+-- Unit Toggle
+local unitButton = Instance.new("TextButton", screenGui)
+unitButton.Size = UDim2.new(0, 100, 0, 50)
+unitButton.Position = UDim2.new(1, -110, 0, 50)
+unitButton.Text = "Unit"
+unitButton.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
+
+local unitRunning = false
+
+unitButton.MouseButton1Click:Connect(function()
+    unitRunning = not unitRunning
+    if unitRunning then
+        unitButton.Text = "Unit (On)"
+    else
+        unitButton.Text = "Unit (Off)"
+    end
+end)
+
+-- Bank Toggle
+local bankButton = Instance.new("TextButton", screenGui)
+bankButton.Size = UDim2.new(0, 100, 0, 50)
+bankButton.Position = UDim2.new(1, -110, 0, 110)
+bankButton.Text = "Bank"
+bankButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+
+local bankRunning = false
+
+bankButton.MouseButton1Click:Connect(function()
+    bankRunning = not bankRunning
+    if bankRunning then
+        bankButton.Text = "Bank (On)"
+    else
+        bankButton.Text = "Bank (Off)"
+    end
+end)
+
+-- GiveUp Button
+local giveUpButton = Instance.new("TextButton", screenGui)
+giveUpButton.Size = UDim2.new(0, 100, 0, 50)
+giveUpButton.Position = UDim2.new(1, -110, 0, 170) -- Position below the Bank button
+giveUpButton.Text = "GiveUp"
+giveUpButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+
+giveUpButton.MouseButton1Click:Connect(function()
+    game:GetService("ReplicatedStorage").Events.RemoteEvents.GiveUp:FireServer()
+end)
+
+-- Main Loop
+spawn(function()
+    while wait(0.1) do
+        if unitRunning then
+            for i = 1, 8 do
+                local args = {
+                    [1] = "Slot" .. i
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("RemoteFunction"):WaitForChild("PlayerSpawn"):InvokeServer(unpack(args))
+            end
+        end
+        
+        if bankRunning then
+            local args = {
+                [1] = "Bank"
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("RemoteFunction"):WaitForChild("PlayerSpawn"):InvokeServer(unpack(args))
+        end
+    end
+end)
